@@ -1,26 +1,62 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: 221 60% 95%; /* EEF2FB Off-white */
+    --foreground: 208 31% 8%;  /* 0E151B Deep Navy */
+    --card: 0 0% 100%;
+    --card-foreground: 208 31% 8%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 208 31% 8%;
+    --primary: 202 37% 26%;    /* 2A495B Deep Blue */
+    --primary-foreground: 221 60% 95%;
+    --secondary: 204 25% 53%;  /* 6D8EA4 Muted Blue */
+    --secondary-foreground: 221 60% 95%;
+    --muted: 204 28% 69%;      /* A5BCCC Soft Blue */
+    --muted-foreground: 208 31% 8%;
+    --accent: 138 18% 48%;     /* 659373 Muted Green (Success/Action) */
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 204 28% 69%;
+    --input: 204 28% 69%;
+    --ring: 202 37% 26%;
+    --radius: 0.5rem;          /* Moderate radius for editorial look */
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading tracking-tight;
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@layer utilities {
+  .text-gradient {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, #2A495B 0%, #6D8EA4 100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
