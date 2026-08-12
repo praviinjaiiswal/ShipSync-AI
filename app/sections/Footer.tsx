@@ -5,19 +5,19 @@ import { Ship, Linkedin, Twitter, Youtube } from "lucide-react";
 
 const footerLinks = {
   Product: [
-    { label: "Features", href: "#features" },
-    { label: "How It Works", href: "#how-it-works" },
-    { label: "Pricing", href: "#waitlist" },
+    { label: "Features", href: "/features" },
+    { label: "How It Works", href: "/how-it-works" },
+    { label: "Pricing", href: "/pricing" },
   ],
   Company: [
-    { label: "About", href: "#" },
-    { label: "Blog", href: "#" },
-    { label: "Careers", href: "#" },
+    { label: "About", href: "/about" },
+    { label: "Blog", href: "/blog" },
+    { label: "Careers", href: "/careers" },
   ],
   Support: [
     { label: "Contact", href: "/contact" },
-    { label: "Privacy Policy", href: "#" },
-    { label: "Terms of Service", href: "#" },
+    { label: "Privacy Policy", href: "/privacy" },
+    { label: "Terms of Service", href: "/terms" },
   ],
 };
 
@@ -70,13 +70,14 @@ export function Footer() {
           ))}
         </div>
 
-        <div className="mt-12 pt-8 border-t border-slate-800/50 flex flex-col sm:flex-row justify-between items-center gap-4">
-          <p className="text-sm text-slate-600">
-            &copy; 2026 ShipSync AI. All rights reserved.
+        <div className="border-t border-slate-800/50 pt-8 mt-12 flex flex-col md:flex-row justify-between items-center gap-4">
+          <p className="text-sm text-slate-500">
+            © {new Date().getFullYear()} ShipSync AI. All rights reserved.
           </p>
-          <p className="text-sm text-slate-600 flex items-center gap-1">
-            Made with <span className="text-red-500">&#9829;</span> for Indian Exporters
-          </p>
+          
+          <div className="flex items-center gap-2 text-sm text-slate-500 font-medium">
+            <span>Engineered with <span className="text-emerald-500">⚡</span> for Indian Exporters</span>
+          </div>
         </div>
       </div>
     </footer>

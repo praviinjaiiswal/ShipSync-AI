@@ -15,9 +15,10 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://shipsync.ai"), // <-- YEH LINE ADD KARNI HAI
   title: "ShipSync AI — AI Export Compliance for Indian Engineering Exporters",
   description:
-    "Auto-find HS codes, generate export documents, and never miss DGFT benefits. AI-powered compliance for Indian engineering exporters. Join 200+ exporters on the waitlist.",
+    "Auto-find HS codes, generate export documents, and never miss DGFT benefits. AI-powered compliance for Indian engineering exporters.",
   keywords: [
     "HS code classifier India",
     "export documentation software",

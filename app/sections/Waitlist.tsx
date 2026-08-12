@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { WaitlistForm } from "../components/WaitlistForm";
 import { GradientBackground } from "../components/GradientBackground";
+import { SocialProof } from "../components/SocialProof";
 
 export function Waitlist() {
   return (
@@ -39,6 +40,7 @@ export function Waitlist() {
           <div className="absolute -inset-1 bg-gradient-to-r from-ocean-deep/10 to-navy-deep/10 rounded-2xl blur-xl" />
           <div className="relative p-8 sm:p-12 rounded-2xl bg-white border border-border shadow-2xl">
             <WaitlistForm />
+          <SocialProof />
           </div>
         </motion.div>
       </div>
