@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Space_Grotesk } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
+import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 
 const inter = Inter({
@@ -67,7 +68,11 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider>
-      <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable}`}>
+      <html
+        lang="en"
+        className={`${inter.variable} ${spaceGrotesk.variable}`}
+        suppressHydrationWarning
+      >
         <head>
           <script
             type="application/ld+json"
@@ -110,7 +115,9 @@ export default function RootLayout({
           />
         </head>
         <body className="min-h-screen bg-background font-sans antialiased">
-          {children}
+          <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+            {children}
+          </ThemeProvider>
         </body>
       </html>
     </ClerkProvider>

@@ -44,6 +44,10 @@ const config: Config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        "brand-orange": {
+          DEFAULT: "hsl(var(--brand-orange))",
+          foreground: "hsl(var(--brand-orange-foreground))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -71,12 +75,17 @@ const config: Config = {
           "0%, 100%": { opacity: "0.4", transform: "scale(1)" },
           "50%": { opacity: "0.8", transform: "scale(1.05)" },
         },
+        "claude-dot": {
+          "0%, 80%, 100%": { opacity: "0.3", transform: "scale(0.75)" },
+          "40%": { opacity: "1", transform: "scale(1)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         float: "float 6s ease-in-out infinite",
         "pulse-glow": "pulse-glow 3s ease-in-out infinite",
+        "claude-dot": "claude-dot 1.4s ease-in-out infinite",
       },
     },
   },
