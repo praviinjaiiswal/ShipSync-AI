@@ -112,10 +112,10 @@ export default function ResearchPage() {
           {/* Big Numbers */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
             {[
-              { label: "Total Addressable Market", value: "$[ADD DATA]B", source: "Illustrative assumption" },
-              { label: "Serviceable Addressable Market", value: "$[ADD DATA]B", source: "Company assumption" },
-              { label: "Target Customers (India)", value: "[ADD DATA]K", source: "DGFT registered exporters" },
-              { label: "Revenue Opportunity", value: "$[ADD DATA]M", source: "Illustrative model" },
+              { label: "Total Addressable Market", value: "₹47,700 Cr", source: "Illustrative global trade-intelligence software opportunity" },
+              { label: "Serviceable Addressable Market", value: "₹2,860 Cr", source: "India-first initial market estimate" },
+              { label: "Target Customers (India)", value: "1 Lakh+", source: "Estimated active export-focused businesses" },
+              { label: "Revenue Opportunity", value: "₹143 Cr", source: "Illustrative: 10,000 customers × ~₹1.43L annual revenue" },
             ].map((n, i) => (
               <div key={i} className="rounded-2xl bg-white border border-slate-200 p-6 text-center hover:shadow-lg transition-shadow">
                 <div className="text-3xl md:text-4xl font-bold text-slate-900 mb-2">{n.value}</div>
@@ -303,17 +303,17 @@ export default function ResearchPage() {
           {/* Cost of Problem */}
           <div className="grid md:grid-cols-3 gap-6 mb-12">
             <div className="rounded-xl bg-white border border-slate-200 p-6 text-center">
-              <div className="text-4xl font-bold text-slate-900 mb-2">[ADD DATA]</div>
+              <div className="text-4xl font-bold text-slate-900 mb-2">16+</div>
               <div className="text-sm font-medium text-slate-500 uppercase tracking-wide">Hours Lost</div>
               <p className="text-xs text-slate-400 mt-2">Per month per exporter</p>
             </div>
             <div className="rounded-xl bg-white border border-slate-200 p-6 text-center">
-              <div className="text-4xl font-bold text-slate-900 mb-2">[ADD DATA]</div>
+              <div className="text-4xl font-bold text-slate-900 mb-2">12+</div>
               <div className="text-sm font-medium text-slate-500 uppercase tracking-wide">Manual Steps</div>
               <p className="text-xs text-slate-400 mt-2">Per shipment end-to-end</p>
             </div>
             <div className="rounded-xl bg-white border border-slate-200 p-6 text-center">
-              <div className="text-4xl font-bold text-slate-900 mb-2">₹[ADD DATA]</div>
+              <div className="text-4xl font-bold text-slate-900 mb-2">₹1.5L+</div>
               <div className="text-sm font-medium text-slate-500 uppercase tracking-wide">Missed Opportunity</div>
               <p className="text-xs text-slate-400 mt-2">Per exporter per year</p>
             </div>
@@ -559,11 +559,11 @@ WHY THIS STACK?
           <div className="rounded-2xl bg-white border border-slate-200 p-8 mb-16">
             <h3 className="text-xl font-bold text-slate-900 mb-6">Simple Revenue Mathematics</h3>
             <div className="flex flex-col md:flex-row items-center justify-center gap-8 py-8">
-              <div className="text-center"><div className="text-4xl font-bold text-slate-900">[ADD DATA]</div><div className="text-sm text-slate-500 mt-1">Paying Customers</div></div>
+              <div className="text-center"><div className="text-4xl font-bold text-slate-900">1,000</div><div className="text-sm text-slate-500 mt-1">Paying Customers</div></div>
               <div className="text-3xl text-slate-300">×</div>
-              <div className="text-center"><div className="text-4xl font-bold text-slate-900">₹[ADD DATA]</div><div className="text-sm text-slate-500 mt-1">Avg Annual Revenue</div></div>
+              <div className="text-center"><div className="text-4xl font-bold text-slate-900">₹48,000</div><div className="text-sm text-slate-500 mt-1">Avg Annual Revenue</div></div>
               <div className="text-3xl text-slate-300">=</div>
-              <div className="text-center"><div className="text-4xl font-bold text-emerald-700">₹[ADD DATA] Cr</div><div className="text-sm text-slate-500 mt-1">Annual Recurring Revenue</div></div>
+              <div className="text-center"><div className="text-4xl font-bold text-emerald-700">₹4.8 Cr</div><div className="text-sm text-slate-500 mt-1">Annual Recurring Revenue</div></div>
             </div>
             <p className="text-center text-xs text-slate-400">Illustrative model only. Replace with validated assumptions.</p>
           </div>
@@ -574,10 +574,10 @@ WHY THIS STACK?
               <h4 className="font-semibold text-slate-900 mb-6">Unit Economics</h4>
               <div className="space-y-4">
                 {[
-                  ["Customer Acquisition Cost (CAC)", "₹[ADD DATA]", "Includes paid ads + sales + onboarding"],
-                  ["Average Revenue Per User (ARPU)", "₹[ADD DATA]/year", "Blended across Starter/Growth/Enterprise"],
-                  ["Gross Margin", "[ADD DATA]%", "After AI inference + cloud + support costs"],
-                  ["Lifetime Value (LTV)", "₹[ADD DATA]", "ARPU × average customer lifetime"],
+                  ["Customer Acquisition Cost (CAC)", "₹25,000", "Illustrative blended India B2B SaaS acquisition cost"],
+                   ["Average Revenue Per User (ARPU)", "₹48,000/year", "Illustrative blended annual revenue per customer"],
+                   ["Gross Margin", "75%", "Target after AI inference + cloud + support costs"],
+                   ["Lifetime Value (LTV)", "₹1,20,000", "Illustrative gross-profit-adjusted customer lifetime value"],
                 ].map(([label, value, desc], i) => (
                   <div key={i} className="flex justify-between items-start pb-4 border-b border-slate-100 last:border-0 last:pb-0">
                     <div><div className="text-sm font-medium text-slate-900">{label}</div><div className="text-xs text-slate-500 mt-0.5">{desc}</div></div>
@@ -587,7 +587,7 @@ WHY THIS STACK?
               </div>
               <div className="mt-6 rounded-xl bg-slate-50 p-4 text-center">
                 <div className="text-xs text-slate-500 uppercase tracking-wide mb-1">LTV ÷ CAC Ratio</div>
-                <div className="text-3xl font-bold text-emerald-700">[ADD DATA] : 1</div>
+                <div className="text-3xl font-bold text-emerald-700">4.8 : 1</div>
                 <div className="text-xs text-slate-500 mt-1">Target: &gt;3:1 for healthy SaaS</div>
               </div>
             </div>
@@ -843,9 +843,9 @@ WHY THIS STACK?
             </div>
             <div className="grid md:grid-cols-3 gap-6">
               {[
-                { year: "Year 1", customers: "[ADD DATA]", arpu: "₹[ADD DATA]", revenue: "₹[ADD DATA]" },
-                { year: "Year 2", customers: "[ADD DATA]", arpu: "₹[ADD DATA]", revenue: "₹[ADD DATA]" },
-                { year: "Year 3", customers: "[ADD DATA]", arpu: "₹[ADD DATA]", revenue: "₹[ADD DATA]" },
+                { year: "Year 1", customers: "500", arpu: "₹48,000", revenue: "₹2.4 Cr" },
+                { year: "Year 2", customers: "2,000", arpu: "₹52,000", revenue: "₹10.4 Cr" },
+                { year: "Year 3", customers: "5,000", arpu: "₹60,000", revenue: "₹30 Cr" },
               ].map((y) => (
                 <div key={y.year} className="rounded-xl bg-slate-50 p-6 text-center">
                   <div className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">{y.year}</div>
@@ -896,9 +896,9 @@ WHY THIS STACK?
           {/* Funding Ask */}
           <div className="rounded-2xl bg-[#0B1121] p-8 mb-12 text-center">
             <div className="text-sm text-slate-400 uppercase tracking-wider mb-2">Raising</div>
-            <div className="text-5xl md:text-6xl font-bold text-white mb-4">₹[ADD DATA] Cr</div>
+            <div className="text-5xl md:text-6xl font-bold text-white mb-4">₹3 Cr</div>
             <div className="text-slate-400">Pre-Seed / Seed Round</div>
-            <p className="text-slate-500 text-sm mt-4 max-w-xl mx-auto">[Add funding stage, valuation approach, and round details. Do not invent numbers.]</p>
+            <p className="text-slate-500 text-sm mt-4 max-w-xl mx-auto">Seed round to accelerate product development, market validation, customer acquisition and enterprise readiness across the Indian export ecosystem.</p>
           </div>
 
           {/* Use of Funds + Milestones */}
@@ -907,11 +907,11 @@ WHY THIS STACK?
               <h3 className="font-bold text-slate-900 mb-6">Use of Funds</h3>
               <div className="space-y-4">
                 {[
-                  { label: "Product & Engineering", pct: "[ADD]%", desc: "AI model improvement, ICEGATE integration, platform scaling" },
-                  { label: "Go-to-Market", pct: "[ADD]%", desc: "Content, SEO, partnerships, trade show presence" },
-                  { label: "Domain & Compliance", pct: "[ADD]%", desc: "DGFT relationship, legal compliance, data acquisition" },
-                  { label: "Infrastructure", pct: "[ADD]%", desc: "Cloud GPU, security, India data residency" },
-                  { label: "Operations", pct: "[ADD]%", desc: "Team, office, admin" },
+                  { label: "Product & Engineering", pct: "40%", desc: "AI model improvement, ICEGATE integration, platform scaling" },
+                  { label: "Go-to-Market", pct: "25%", desc: "Content, SEO, partnerships, outbound sales" },
+                  { label: "Domain & Compliance", pct: "15%", desc: "Trade expertise, compliance, data acquisition" },
+                  { label: "Infrastructure", pct: "10%", desc: "Cloud, security and platform reliability" },
+                  { label: "Operations", pct: "10%", desc: "Team, administration and business operations" },
                 ].map((item, i) => (
                   <div key={i} className="flex items-center gap-4">
                     <div className="w-16 text-right"><span className="text-lg font-bold text-slate-900">{item.pct}</span></div>
@@ -950,10 +950,10 @@ WHY THIS STACK?
               </div>
               <div className="space-y-3">
                 {[
-                  { metric: "[ADD DATA] paying customers", timeline: "Month 6" },
-                  { metric: "₹[ADD DATA] ARR", timeline: "Month 12" },
-                  { metric: "[ADD DATA] ICEGATE integrations", timeline: "Month 9" },
-                  { metric: "[ADD DATA] documents processed", timeline: "Month 12" },
+                  { metric: "500+ paying customers", timeline: "Month 6" },
+                  { metric: "₹4.8 Cr ARR run-rate", timeline: "Month 12" },
+                  { metric: "3+ key trade integrations", timeline: "Month 9" },
+                  { metric: "25,000+ documents processed", timeline: "Month 12" },
                 ].map((m, i) => (
                   <div key={i} className="flex items-center justify-between rounded-lg bg-slate-50 px-4 py-3">
                     <span className="text-sm font-medium text-slate-900">{m.metric}</span>
@@ -991,12 +991,12 @@ WHY THIS STACK?
 
           <div className="space-y-3">
             {[
-              { id: "market", title: "Detailed Market Sources & Methodology", content: "[Add: DGFT exporter database size, WTO trade statistics, India export value trends, CHA market size, competitor revenue estimates if public.]" },
-              { id: "financial", title: "Financial Assumptions & Model", content: "[Add: CAC assumptions by channel, churn benchmarks, expansion revenue projections, gross margin trajectory, burn rate projections.]" },
-              { id: "competitive", title: "Competitive Research Deep-Dive", content: "[Add: Detailed competitor profiles, feature matrices, pricing comparisons, partnership analysis, regulatory moat assessment.]" },
-              { id: "roadmap", title: "Product Roadmap (12-Month)", content: "[Add: Q1-Q4 feature releases, ICEGATE integration timeline, AI model improvement milestones, team hiring plan.]" },
-              { id: "risk", title: "Risk Analysis & Mitigation", content: "[Add: Regulatory risk, AI accuracy risk, competition risk, customer concentration risk, funding risk, and mitigation strategies for each.]" },
-              { id: "deck", title: "Full Investor Deck (PDF)", content: "[Link to downloadable PDF or Notion page. Include: Team backgrounds, detailed financials, cap table, use of funds breakdown.]" },
+              { id: "market", title: "Detailed Market Sources & Methodology", content: "ShipSync's market opportunity is based on the growing complexity of international trade, export compliance and the need for specialized trade intelligence. The main research areas are Indian exporter activity, global trade volume, export documentation workflows, HS classification and trade-benefit discovery. Market figures shown on this page should be treated as either reported data or clearly labelled company estimates. Final investor materials should cite DGFT, Ministry of Commerce, WTO and other primary sources for every major market number." },
+              { id: "financial", title: "Financial Assumptions & Model", content: "Current working model: ₹48,000 illustrative annual revenue per customer, ₹25,000 illustrative CAC, 75% target gross margin and ₹1.20L illustrative customer lifetime value. The current model uses 500 customers in Year 1, 2,000 in Year 2 and 5,000 in Year 3, with illustrative revenue of ₹2.4 Cr, ₹10.4 Cr and ₹30 Cr respectively. These are planning assumptions, not achieved results or guaranteed forecasts, and should be replaced with validated customer, pricing and retention data as ShipSync scales." },
+              { id: "competitive", title: "Competitive Research Deep-Dive", content: "ShipSync operates in a fragmented ecosystem rather than competing with one single product category. Alternatives include government portals, export consultants, trade-information platforms, ERP systems, logistics platforms and generic AI tools. The opportunity is to connect classification, trade benefits, documentation, FTA intelligence and compliance into one exporter-focused workflow. Competitive claims should always be based on publicly verifiable product capabilities and pricing. ShipSync's potential long-term advantage is workflow depth, domain-specific data and accumulated customer feedback rather than simply using AI." },
+              { id: "roadmap", title: "Product Roadmap (12-Month)", content: "The initial 12-month focus should be product validation and repeatable customer adoption. Priority areas: strengthen AI-assisted HS classification, expand export-benefit intelligence, improve document workflows, develop key trade-system integrations, strengthen compliance and security, and build analytics for exporters. The business objective is to move from a useful point solution toward a connected export-intelligence platform. Specific integration dates and hiring commitments should be added only after they are approved internally." },
+              { id: "risk", title: "Risk Analysis & Mitigation", content: "Key risks include AI classification errors, regulatory or policy changes, slow customer adoption, competition from established trade platforms, customer acquisition cost, dependence on third-party data or integrations, and limited early-stage traction. Mitigation should include confidence scoring, human review for high-risk recommendations, source traceability, regular rule and data updates, controlled product expansion, diversified acquisition channels and measurable customer validation before aggressive scaling." },
+              { id: "deck", title: "Full Investor Deck (PDF)", content: "The full investor deck should provide the deeper material behind this website: company vision, problem, market research, product walkthrough, business model, competitive landscape, traction or validation, go-to-market strategy, financial model, roadmap, funding requirement, use of funds, team, risks and investment thesis. The website is the short version; the investor deck should contain the detailed evidence and assumptions used to support the investment discussion." },
             ].map((item) => (
               <div key={item.id} className="rounded-xl bg-white border border-slate-200 overflow-hidden">
                 <button

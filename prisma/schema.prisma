@@ -1,0 +1,176 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ===== ShipSync Core (App Users) =====
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  companyName   String?
+  iecCode       String?   @unique
+  gstNumber     String?   @unique
+  pan           String?   @unique
+  phone         String?
+  role          UserRole  @default(EXPORTER)
+  plan          Plan      @default(FREE)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  shipments     Shipment[]
+  activities    Activity[]
+  subscription  Subscription?
+}
+
+model Shipment {
+  id              String           @id @default(cuid())
+  userId          String
+  user            User             @relation(fields: [userId], references: [id])
+  buyerName       String
+  buyerCountry    String
+  buyerEmail      String?
+  hsCode          String
+  productDesc     String
+  value           Float
+  currency        String           @default("USD")
+  incoterm        String           @default("FOB")
+  status          ShipmentStatus   @default(DRAFT)
+  complianceScore Int?             @default(0)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  documents       Document[]
+  complianceChecks ComplianceCheck[]
+  riskReport      RiskReport?
+}
+
+model Document {
+  id              String   @id @default(cuid())
+  shipmentId      String
+  shipment        Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  docType         DocType
+  fileUrl         String?
+  aiExtractedData Json?
+  status          String   @default("PENDING")
+  createdAt       DateTime @default(now())
+}
+
+model ComplianceCheck {
+  id          String   @id @default(cuid())
+  shipmentId  String
+  shipment    Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  checkType   String
+  status      String   @default("PENDING")
+  details     String?
+  aiAnalysis  String?
+  createdAt   DateTime @default(now())
+}
+
+model RiskReport {
+  id              String   @id @default(cuid())
+  shipmentId      String   @unique
+  shipment        Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  countryRiskScore Int?
+  buyerRiskScore   Int?
+  aiReport         String?
+  createdAt        DateTime @default(now())
+}
+
+model Subscription {
+  id                    String   @id @default(cuid())
+  userId                String   @unique
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan                  Plan
+  razorpaySubscriptionId String?
+  status                String   @default("ACTIVE")
+  currentPeriodEnd      DateTime?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+model Activity {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  shipmentId  String?
+  action      String
+  details     String?
+  createdAt   DateTime @default(now())
+}
+
+enum UserRole {
+  ADMIN
+  EXPORTER
+  COMPLIANCE_OFFICER
+}
+
+enum Plan {
+  FREE
+  STARTER
+  BUSINESS
+  ENTERPRISE
+}
+
+enum ShipmentStatus {
+  DRAFT
+  DOCUMENTS_READY
+  UNDER_REVIEW
+  CLEARED
+  SHIPPED
+  DELIVERED
+}
+
+enum DocType {
+  COMMERCIAL_INVOICE
+  PACKING_LIST
+  CERTIFICATE_OF_ORIGIN
+  SHIPPING_BILL
+  BILL_OF_LADING
+  LUT
+  OTHER
+}
+
+// ===== Blog (Website Content) =====
+
+model BlogAuthor {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String?
+  role      BlogRole @default(EDITOR)
+  posts     Post[]
+  createdAt DateTime @default(now())
+}
+
+model Post {
+  id          String    @id @default(cuid())
+  title       String
+  slug        String    @unique
+  excerpt     String?
+  coverImage  String?
+  content     Json
+  status      PostStatus @default(DRAFT)
+  category    String
+  tags        String[]
+  readTime    Int
+  authorId    String
+  author      BlogAuthor @relation(fields: [authorId], references: [id])
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+enum BlogRole {
+  ADMIN
+  EDITOR
+}
+
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}

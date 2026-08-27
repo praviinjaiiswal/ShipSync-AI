@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Space_Grotesk } from "next/font/google";
+import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 
 const inter = Inter({
@@ -15,7 +16,7 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://shipsync.ai"), // <-- YEH LINE ADD KARNI HAI
+  metadataBase: new URL("https://shipsync.ai"),
   title: "ShipSync AI — AI Export Compliance for Indian Engineering Exporters",
   description:
     "Auto-find HS codes, generate export documents, and never miss DGFT benefits. AI-powered compliance for Indian engineering exporters.",
@@ -65,51 +66,53 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable}`}>
-      <head>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@graph": [
-                {
-                  "@type": "Organization",
-                  "@id": "https://shipsync.ai/#organization",
-                  name: "ShipSync AI",
-                  url: "https://shipsync.ai",
-                  logo: {
-                    "@type": "ImageObject",
-                    url: "https://shipsync.ai/logo.png",
+    <ClerkProvider>
+      <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable}`}>
+        <head>
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                "@context": "https://schema.org",
+                "@graph": [
+                  {
+                    "@type": "Organization",
+                    "@id": "https://shipsync.ai/#organization",
+                    name: "ShipSync AI",
+                    url: "https://shipsync.ai",
+                    logo: {
+                      "@type": "ImageObject",
+                      url: "https://shipsync.ai/logo.png",
+                    },
                   },
-                },
-                {
-                  "@type": "WebSite",
-                  "@id": "https://shipsync.ai/#website",
-                  url: "https://shipsync.ai",
-                  name: "ShipSync AI",
-                },
-                {
-                  "@type": "SoftwareApplication",
-                  name: "ShipSync AI",
-                  applicationCategory: "BusinessApplication",
-                  operatingSystem: "Web",
-                  offers: {
-                    "@type": "Offer",
-                    price: "0",
-                    priceCurrency: "INR",
+                  {
+                    "@type": "WebSite",
+                    "@id": "https://shipsync.ai/#website",
+                    url: "https://shipsync.ai",
+                    name: "ShipSync AI",
                   },
-                  description:
-                    "AI-powered export compliance platform for Indian exporters.",
-                },
-              ],
-            }),
-          }}
-        />
-      </head>
-      <body className="min-h-screen bg-background font-sans antialiased">
-        {children}
-      </body>
-    </html>
+                  {
+                    "@type": "SoftwareApplication",
+                    name: "ShipSync AI",
+                    applicationCategory: "BusinessApplication",
+                    operatingSystem: "Web",
+                    offers: {
+                      "@type": "Offer",
+                      price: "0",
+                      priceCurrency: "INR",
+                    },
+                    description:
+                      "AI-powered export compliance platform for Indian exporters.",
+                  },
+                ],
+              }),
+            }}
+          />
+        </head>
+        <body className="min-h-screen bg-background font-sans antialiased">
+          {children}
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }
