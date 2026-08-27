@@ -15,6 +15,7 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { shipmentSchema, ShipmentFormData } from "@/lib/validations";
+import { HSCodeFinder } from "@/components/shipments/hs-code-finder";
 
 const CURRENCIES = ["USD", "EUR", "GBP", "INR", "AED"];
 const INCOTERMS = ["FOB", "CIF", "DDP", "EXW", "DAP"];
@@ -86,10 +87,14 @@ export function ShipmentForm() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="space-y-1.5">
+        <div className="space-y-1.5 sm:col-span-3">
           <Label htmlFor="hsCode">HS Code (8 digits)</Label>
           <Input id="hsCode" {...register("hsCode")} placeholder="73181500" maxLength={8} />
           {errors.hsCode && <p className="text-xs text-destructive">{errors.hsCode.message}</p>}
+          <HSCodeFinder
+            productDescription={watch("productDesc") ?? ""}
+            onSelect={(code) => setValue("hsCode", code)}
+          />
         </div>
 
         <div className="space-y-1.5">

@@ -6,6 +6,7 @@ import { getCurrentUser } from "@/lib/getCurrentUser";
 import { StatusBadge } from "@/components/shipments/StatusBadge";
 import { Timeline } from "@/components/shipments/Timeline";
 import { DeleteShipmentButton } from "@/components/shipments/DeleteShipmentButton";
+import { DocumentGenerator } from "@/components/shipments/document-generator";
 
 export default async function ShipmentDetailPage({ params }: { params: { id: string } }) {
   const user = await getCurrentUser();
@@ -66,6 +67,11 @@ export default async function ShipmentDetailPage({ params }: { params: { id: str
               <p className="text-muted-foreground text-sm">Product Description</p>
               <p className="text-foreground text-sm mt-1">{shipment.productDesc}</p>
             </div>
+          </div>
+
+          <div className="border border-border rounded-lg p-5 bg-card">
+            <h2 className="text-sm font-semibold text-foreground mb-3">AI Document Generator</h2>
+            <DocumentGenerator shipmentId={shipment.id} />
           </div>
 
           <div className="border border-border rounded-lg p-5 bg-card">
