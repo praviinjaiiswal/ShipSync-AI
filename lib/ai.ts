@@ -34,6 +34,21 @@ export async function checkCompliance(shipmentData: any) {
   return JSON.parse(response.choices[0].message.content || '{}')
 }
 
+export async function assessRisk(shipmentData: any) {
+  const prompt = `Assess the risk profile of this export shipment: ${JSON.stringify(shipmentData)}. Consider buyer country stability, payment risk, and trade restrictions. Return JSON with: countryRiskScore (0-100, higher = riskier), buyerRiskScore (0-100, higher = riskier), aiReport (a 2-3 sentence summary of key risks).`
+
+  const response = await openai.chat.completions.create({
+    model: 'gpt-4o-mini',
+    messages: [
+      { role: 'system', content: 'You are an Indian export trade risk assessment expert.' },
+      { role: 'user', content: prompt }
+    ],
+    response_format: { type: 'json_object' },
+  })
+
+  return JSON.parse(response.choices[0].message.content || '{}')
+}
+
 export async function findHSCode(productDescription: string) {
   const prompt = `Given this product description: "${productDescription}", suggest the correct 8-digit Indian HS Code. Return JSON with: hsCode, description, chapterHeading, applicableDuties.`
 
