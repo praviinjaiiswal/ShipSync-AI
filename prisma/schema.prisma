@@ -26,6 +26,7 @@ model User {
   shipments     Shipment[]
   activities    Activity[]
   subscription  Subscription?
+  licenses      License[]
 }
 
 model Shipment {
@@ -123,6 +124,29 @@ enum ShipmentStatus {
   CLEARED
   SHIPPED
   DELIVERED
+}
+
+model License {
+  id            String      @id @default(cuid())
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type          LicenseType
+  name          String
+  licenseNumber String?
+  issueDate     DateTime?
+  expiryDate    DateTime
+  fileUrl       String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+enum LicenseType {
+  IEC
+  RCMC
+  LUT
+  BIS_CERTIFICATE
+  GST_CERTIFICATE
+  OTHER
 }
 
 enum DocType {

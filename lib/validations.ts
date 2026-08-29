@@ -31,3 +31,13 @@ export const shipmentSchema = z.object({
 });
 
 export type ShipmentFormData = z.infer<typeof shipmentSchema>;
+
+export const licenseSchema = z.object({
+  type: z.enum(["IEC", "RCMC", "LUT", "BIS_CERTIFICATE", "GST_CERTIFICATE", "OTHER"]),
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  licenseNumber: z.string().optional(),
+  issueDate: z.string().optional(),
+  expiryDate: z.string().min(1, "Expiry date is required"),
+});
+
+export type LicenseFormData = z.infer<typeof licenseSchema>;

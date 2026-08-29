@@ -19,3 +19,12 @@ export async function sendComplianceAlert(email: string, shipmentId: string, iss
     html: `<h1>Compliance Issues Found</h1><ul>${issues.map(i => `<li>${i}</li>`).join('')}</ul>`,
   })
 }
+
+export async function sendLicenseExpiryReminder(email: string, licenseName: string, daysLeft: number) {
+  await resend.emails.send({
+    from: 'ShipSync AI <alerts@shipsync.ai>',
+    to: email,
+    subject: `Reminder: ${licenseName} expires in ${daysLeft} days`,
+    html: `<h1>License Expiry Reminder</h1><p><strong>${licenseName}</strong> expires in <strong>${daysLeft} days</strong>. Renew it soon to avoid compliance issues.</p>`,
+  })
+}
