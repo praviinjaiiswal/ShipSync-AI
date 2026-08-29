@@ -47,7 +47,8 @@ model Shipment {
   updatedAt       DateTime         @updatedAt
   documents       Document[]
   complianceChecks ComplianceCheck[]
-  riskReport      RiskReport?
+  riskReport       RiskReport?
+  sanctionsCheck   SanctionsCheck?
 }
 
 model Document {
@@ -80,6 +81,15 @@ model RiskReport {
   buyerRiskScore   Int?
   aiReport         String?
   createdAt        DateTime @default(now())
+}
+
+model SanctionsCheck {
+  id          String   @id @default(cuid())
+  shipmentId  String   @unique
+  shipment    Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  matchFound  Boolean  @default(false)
+  matches     Json?
+  checkedAt   DateTime @default(now())
 }
 
 model Subscription {

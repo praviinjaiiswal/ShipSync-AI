@@ -8,6 +8,7 @@ import { Timeline } from "@/components/shipments/Timeline";
 import { DeleteShipmentButton } from "@/components/shipments/DeleteShipmentButton";
 import { ComplianceCheck } from "@/components/shipments/compliance-check";
 import { RiskReport } from "@/components/shipments/risk-report";
+import { SanctionsCheck } from "@/components/shipments/sanctions-check";
 import { DocumentsPanel } from "@/components/shipments/documents-panel";
 import { DocumentGenerator } from "@/components/shipments/document-generator";
 
@@ -87,6 +88,11 @@ export default async function ShipmentDetailPage({ params }: { params: { id: str
           <div className="border border-border rounded-lg p-5 bg-card">
             <h2 className="text-sm font-semibold text-foreground mb-4">Status Timeline</h2>
             <Timeline currentStatus={shipment.status} />
+          </div>
+
+          <div className="border border-border rounded-lg p-5 bg-card">
+            <h2 className="text-sm font-semibold text-foreground mb-3">Sanctions Screening</h2>
+            <SanctionsCheck shipmentId={shipment.id} />
           </div>
 
           <div className="border border-border rounded-lg p-5 bg-card">
