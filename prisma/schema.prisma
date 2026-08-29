@@ -27,6 +27,23 @@ model User {
   activities    Activity[]
   subscription  Subscription?
   licenses      License[]
+
+  organizationOwnerId String?
+  organizationOwner   User?   @relation("OrgMembers", fields: [organizationOwnerId], references: [id])
+  teamMembers         User[]  @relation("OrgMembers")
+
+  sentInvites   TeamInvite[]
+}
+
+model TeamInvite {
+  id         String   @id @default(cuid())
+  orgOwnerId String
+  orgOwner   User     @relation(fields: [orgOwnerId], references: [id], onDelete: Cascade)
+  email      String
+  role       UserRole @default(EXPORTER)
+  token      String   @unique @default(cuid())
+  status     String   @default("PENDING")
+  createdAt  DateTime @default(now())
 }
 
 model Shipment {

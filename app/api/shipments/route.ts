@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/app/lib/prisma";
-import { getCurrentUser } from "@/lib/getCurrentUser";
+import { getOrgContext } from "@/lib/getOrgContext";
 import { shipmentSchema } from "@/lib/validations";
 
 export async function GET(req: NextRequest) {
-  const user = await getCurrentUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const ctx = await getOrgContext();
+  if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const searchParams = req.nextUrl.searchParams;
   const page = Math.max(1, parseInt(searchParams.get("page") ?? "1"));
@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
   const status = searchParams.get("status") ?? "";
 
   const where = {
-    userId: user.id,
+    userId: ctx.effectiveOwnerId,
     ...(search && {
       OR: [
         { buyerName: { contains: search, mode: "insensitive" as const } },
@@ -43,8 +43,8 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const user = await getCurrentUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const ctx = await getOrgContext();
+  if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await req.json();
   const parsed = shipmentSchema.safeParse(body);
@@ -57,7 +57,16 @@ export async function POST(req: NextRequest) {
     data: {
       ...parsed.data,
       buyerEmail: parsed.data.buyerEmail || null,
-      userId: user.id,
+      userId: ctx.effectiveOwnerId,
+    },
+  });
+
+  await prisma.activity.create({
+    data: {
+      userId: ctx.user.id,
+      shipmentId: shipment.id,
+      action: "SHIPMENT_CREATED",
+      details: `Created shipment for ${shipment.buyerName}`,
     },
   });
 

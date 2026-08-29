@@ -1,16 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/app/lib/prisma";
-import { getCurrentUser } from "@/lib/getCurrentUser";
+import { getOrgContext } from "@/lib/getOrgContext";
 import { uploadFile } from "@/lib/storage";
 
 const MAX_FILE_SIZE = 4 * 1024 * 1024; // 4MB — Vercel serverless request body limit
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
-  const user = await getCurrentUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const ctx = await getOrgContext();
+  if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const shipment = await prisma.shipment.findFirst({
-    where: { id: params.id, userId: user.id },
+    where: { id: params.id, userId: ctx.effectiveOwnerId },
   });
   if (!shipment) return NextResponse.json({ error: "Shipment not found" }, { status: 404 });
 
@@ -47,11 +47,11 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 }
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
-  const user = await getCurrentUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const ctx = await getOrgContext();
+  if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const shipment = await prisma.shipment.findFirst({
-    where: { id: params.id, userId: user.id },
+    where: { id: params.id, userId: ctx.effectiveOwnerId },
   });
   if (!shipment) return NextResponse.json({ error: "Shipment not found" }, { status: 404 });
 

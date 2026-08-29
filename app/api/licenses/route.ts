@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/app/lib/prisma";
-import { getCurrentUser } from "@/lib/getCurrentUser";
+import { getOrgContext } from "@/lib/getOrgContext";
 import { licenseSchema } from "@/lib/validations";
 
 export async function GET() {
-  const user = await getCurrentUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const ctx = await getOrgContext();
+  if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const licenses = await prisma.license.findMany({
-    where: { userId: user.id },
+    where: { userId: ctx.effectiveOwnerId },
     orderBy: { expiryDate: "asc" },
   });
 
@@ -16,8 +16,8 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  const user = await getCurrentUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const ctx = await getOrgContext();
+  if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await req.json();
   const parsed = licenseSchema.safeParse(body);
@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
 
   const license = await prisma.license.create({
     data: {
-      userId: user.id,
+      userId: ctx.effectiveOwnerId,
       type: parsed.data.type,
       name: parsed.data.name,
       licenseNumber: parsed.data.licenseNumber || null,

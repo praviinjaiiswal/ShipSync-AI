@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { LicenseForm } from "@/components/settings/LicenseForm";
 import { LicenseList } from "@/components/settings/LicenseList";
+import { TeamSection } from "@/components/team/TeamSection";
 
 type License = {
   id: string;
@@ -39,12 +40,15 @@ export default function SettingsPage() {
         />
       </div>
 
-      <div className="border border-border rounded-lg p-5 bg-card">
+            <div className="border border-border rounded-lg p-5 bg-card">
         <h2 className="text-sm font-semibold text-foreground mb-4">Add New License</h2>
-        <LicenseForm
-          onCreated={(license) => setLicenses((prev) => [...prev, license])}
-        />
+        <LicenseForm onCreated={(license) => setLicenses((prev) => [...prev, license])} />
+      </div>
+
+      <div className="border border-border rounded-lg p-5 bg-card">
+        <h2 className="text-sm font-semibold text-foreground mb-4">Team</h2>
+        <TeamSection />
       </div>
     </div>
   );
-}       
+}
