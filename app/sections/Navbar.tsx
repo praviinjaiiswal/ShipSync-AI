@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Ship } from "lucide-react";
+import { SignedIn, SignedOut } from "@clerk/nextjs";
 
 const navLinks = [
   { href: "/features", label: "Product" },
@@ -57,12 +58,28 @@ export function Navbar() {
           </nav>
 
           <div className="hidden md:flex items-center gap-4">
-            <Link
-              href="#waitlist"
-              className="text-sm font-medium text-sea bg-navy-deep hover:bg-ocean-deep px-6 py-2.5 rounded-full transition-colors duration-300 shadow-sm"
-            >
-              Get Early Access
-            </Link>
+            <SignedOut>
+              <Link
+                href="/sign-in"
+                className="text-sm font-medium text-ocean-muted hover:text-navy-deep transition-colors"
+              >
+                Log In
+              </Link>
+              <Link
+                href="/sign-up"
+                className="text-sm font-medium text-sea bg-navy-deep hover:bg-ocean-deep px-6 py-2.5 rounded-full transition-colors duration-300 shadow-sm"
+              >
+                Get Started
+              </Link>
+            </SignedOut>
+            <SignedIn>
+              <Link
+                href="/dashboard"
+                className="text-sm font-medium text-sea bg-navy-deep hover:bg-ocean-deep px-6 py-2.5 rounded-full transition-colors duration-300 shadow-sm"
+              >
+                Go to Dashboard
+              </Link>
+            </SignedIn>
           </div>
 
           <button
@@ -95,13 +112,31 @@ export function Navbar() {
                   {link.label}
                 </Link>
               ))}
-              <Link
-                href="#waitlist"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="block text-center text-sm font-medium text-white bg-navy-deep hover:bg-ocean-deep px-4 py-3 rounded-full transition-colors mt-6 shadow-sm"
-              >
-                Get Early Access
-              </Link>
+              <SignedOut>
+                <Link
+                  href="/sign-in"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block text-center text-sm font-medium text-navy-deep border border-navy-deep px-4 py-3 rounded-full transition-colors mt-4"
+                >
+                  Log In
+                </Link>
+                <Link
+                  href="/sign-up"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block text-center text-sm font-medium text-white bg-navy-deep hover:bg-ocean-deep px-4 py-3 rounded-full transition-colors mt-3 shadow-sm"
+                >
+                  Get Started
+                </Link>
+              </SignedOut>
+              <SignedIn>
+                <Link
+                  href="/dashboard"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block text-center text-sm font-medium text-white bg-navy-deep hover:bg-ocean-deep px-4 py-3 rounded-full transition-colors mt-6 shadow-sm"
+                >
+                  Go to Dashboard
+                </Link>
+              </SignedIn>
             </div>
           </motion.div>
         )}

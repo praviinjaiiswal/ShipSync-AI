@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { LicenseForm } from "@/components/settings/LicenseForm";
 import { LicenseList } from "@/components/settings/LicenseList";
 import { TeamSection } from "@/components/team/TeamSection";
+import { BillingSection } from "@/components/settings/BillingSection";
 
 type License = {
   id: string;
@@ -48,6 +49,11 @@ export default function SettingsPage() {
       <div className="border border-border rounded-lg p-5 bg-card">
         <h2 className="text-sm font-semibold text-foreground mb-4">Team</h2>
         <TeamSection />
+      </div>
+
+      <div className="border border-border rounded-lg p-5 bg-card">
+        <h2 className="text-sm font-semibold text-foreground mb-4">Billing</h2>
+        <BillingSection />
       </div>
     </div>
   );
