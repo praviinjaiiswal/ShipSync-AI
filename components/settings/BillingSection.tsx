@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import useSWR from "swr";
 import Script from "next/script";
-import { CheckCircle2, CreditCard } from "lucide-react";
+import { CheckCircle2, CreditCard, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { fetcher } from "@/lib/fetcher";
 
 const PLANS = [
   { key: "FREE", name: "Free", price: "₹0", shipments: "3 shipments/month" },
@@ -11,22 +13,18 @@ const PLANS = [
   { key: "BUSINESS", name: "Business", price: "₹4,999/mo", shipments: "Unlimited shipments" },
 ];
 
-export function BillingSection() {
-  const [currentPlan, setCurrentPlan] = useState("FREE");
-  const [loading, setLoading] = useState<string | null>(null);
-  const [error, setError] = useState("");
+type TeamData = { members: { plan?: string; organizationOwnerId?: string | null }[] };
 
-  useEffect(() => {
-    fetch("/api/team")
-      .then((res) => res.json())
-      .then((data) => {
-        const owner = data.members?.find((m: any) => !m.organizationOwnerId) ?? data.members?.[0];
-        if (owner?.plan) setCurrentPlan(owner.plan);
-      });
-  }, []);
+export function BillingSection() {
+  const { data, error, mutate } = useSWR<TeamData>("/api/team", fetcher);
+  const [loading, setLoading] = useState<string | null>(null);
+  const [payError, setPayError] = useState("");
+
+  const currentPlan =
+    data?.members?.find((m: any) => !m.organizationOwnerId)?.plan ?? "FREE";
 
   const handleUpgrade = async (planKey: string) => {
-    setError("");
+    setPayError("");
     setLoading(planKey);
 
     try {
@@ -37,8 +35,8 @@ export function BillingSection() {
       });
 
       if (!orderRes.ok) {
-        const data = await orderRes.json();
-        throw new Error(data.error ?? "Order create nahi ho paaya");
+        const errData = await orderRes.json();
+        throw new Error(errData.error ?? "Failed to create order");
       }
 
       const order = await orderRes.json();
@@ -58,32 +56,42 @@ export function BillingSection() {
           });
 
           if (verifyRes.ok) {
-            setCurrentPlan(planKey);
+            mutate();
           } else {
-            setError("Payment hua lekin verify nahi ho paaya. Support se contact karo.");
+            setPayError("Payment received but verification failed. Please contact support.");
           }
         },
-        modal: {
-          ondismiss: () => setLoading(null),
-        },
+        modal: { ondismiss: () => setLoading(null) },
         theme: { color: "#D97757" },
       };
 
       const rzp = new (window as any).Razorpay(options);
       rzp.open();
     } catch (err: any) {
-      setError(err.message ?? "Kuch galat ho gaya");
+      setPayError(err.message ?? "Something went wrong");
     } finally {
       setLoading(null);
     }
   };
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-between text-sm text-destructive">
+        <span>Failed to load billing info.</span>
+        <button onClick={() => mutate()} className="flex items-center gap-1 text-xs underline">
+          <RefreshCw className="w-3.5 h-3.5" />
+          Retry
+        </button>
+      </div>
+    );
+  }
 
   return (
     <>
       <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
 
       <div className="space-y-4">
-        {error && <p className="text-sm text-destructive">{error}</p>}
+        {payError && <p className="text-sm text-destructive">{payError}</p>}
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {PLANS.map((plan) => {
@@ -107,7 +115,7 @@ export function BillingSection() {
                     Current Plan
                   </div>
                 ) : plan.key === "FREE" ? (
-                  <p className="text-xs text-muted-foreground">Downgrade support se karo</p>
+                  <p className="text-xs text-muted-foreground">Contact support to downgrade</p>
                 ) : (
                   <Button
                     size="sm"

@@ -9,7 +9,6 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import { Loader } from "@/components/ui/loader";
 
 const DOC_TYPES = [
   "COMMERCIAL_INVOICE",
@@ -39,35 +38,49 @@ export function FileUpload({
   const [docType, setDocType] = useState("COMMERCIAL_INVOICE");
   const [dragging, setDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [error, setError] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleFile = async (file: File) => {
+  const handleFile = (file: File) => {
     setError("");
 
     if (file.size > 4 * 1024 * 1024) {
-      setError("File 4MB se bada nahi ho sakta");
+      setError("File cannot exceed 4MB");
       return;
     }
 
     setUploading(true);
+    setProgress(0);
+
     const formData = new FormData();
     formData.append("file", file);
     formData.append("docType", docType);
 
-    try {
-      const res = await fetch(`/api/shipments/${shipmentId}/documents`, {
-        method: "POST",
-        body: formData,
-      });
-      if (!res.ok) throw new Error("failed");
-      const doc = await res.json();
-      onUploaded(doc);
-    } catch {
-      setError("Upload fail ho gaya, dobara try karo.");
-    } finally {
+    const xhr = new XMLHttpRequest();
+
+    xhr.upload.addEventListener("progress", (e) => {
+      if (e.lengthComputable) {
+        setProgress(Math.round((e.loaded / e.total) * 100));
+      }
+    });
+
+    xhr.addEventListener("load", () => {
       setUploading(false);
-    }
+      if (xhr.status >= 200 && xhr.status < 300) {
+        onUploaded(JSON.parse(xhr.responseText));
+      } else {
+        setError("Upload failed. Please try again.");
+      }
+    });
+
+    xhr.addEventListener("error", () => {
+      setUploading(false);
+      setError("Upload failed. Please try again.");
+    });
+
+    xhr.open("POST", `/api/shipments/${shipmentId}/documents`);
+    xhr.send(formData);
   };
 
   return (
@@ -113,14 +126,19 @@ export function FileUpload({
         />
 
         {uploading ? (
-          <>
-            <Loader />
-            <p className="text-xs text-muted-foreground">Upload ho raha hai...</p>
-          </>
+          <div className="w-full max-w-xs space-y-2">
+            <div className="h-2 rounded-full bg-muted overflow-hidden">
+              <div
+                className="h-full bg-brand-orange transition-all duration-150"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground text-center">Uploading... {progress}%</p>
+          </div>
         ) : (
           <>
             <UploadCloud className="w-6 h-6 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">Drag & drop karo ya click karke browse karo</p>
+            <p className="text-sm text-muted-foreground">Drag & drop or click to browse</p>
             <p className="text-xs text-muted-foreground">Max 4MB</p>
           </>
         )}
