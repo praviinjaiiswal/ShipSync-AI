@@ -2,6 +2,7 @@
 
 import { Trash2, FileBadge } from "lucide-react";
 import { ExpiryBadge } from "./ExpiryBadge";
+import { KeyedMutator } from "swr";
 
 type License = {
   id: string;
@@ -14,18 +15,30 @@ type License = {
 export function LicenseList({
   licenses,
   loading,
-  onDeleted,
+  mutate,
 }: {
   licenses: License[];
   loading: boolean;
-  onDeleted: (id: string) => void;
+  mutate: KeyedMutator<License[]>;
 }) {
   const handleDelete = async (id: string) => {
-    if (!confirm("Ye license delete ho jayega. Confirm karo?")) return;
+    if (!confirm("This license will be permanently deleted. Continue?")) return;
 
-    const res = await fetch(`/api/licenses/${id}`, { method: "DELETE" });
-    if (res.ok) onDeleted(id);
-    else alert("Delete nahi ho paaya, dobara try karo.");
+    const optimisticList = licenses.filter((l) => l.id !== id);
+
+    mutate(
+      (async () => {
+        const res = await fetch(`/api/licenses/${id}`, { method: "DELETE" });
+        if (!res.ok) throw new Error("Delete failed");
+        return optimisticList;
+      })(),
+      {
+        optimisticData: optimisticList,
+        rollbackOnError: true,
+        populateCache: true,
+        revalidate: false,
+      }
+    ).catch(() => alert("Failed to delete. Please try again."));
   };
 
   if (loading) {
@@ -39,9 +52,7 @@ export function LicenseList({
   }
 
   if (licenses.length === 0) {
-    return (
-      <p className="text-sm text-muted-foreground">Abhi tak koi license/certificate add nahi hua.</p>
-    );
+    return <p className="text-sm text-muted-foreground">No licenses or certificates added yet.</p>;
   }
 
   return (
