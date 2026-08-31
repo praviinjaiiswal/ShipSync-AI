@@ -35,6 +35,18 @@ model User {
   sentInvites   TeamInvite[]
 }
 
+model DutyIncentiveRate {
+  id               String   @id @default(cuid())
+  hsCode           String   @unique
+  description      String?
+  rodtepRate       Float?
+  rodtepCapPerUnit Float?
+  dutyDrawbackRate Float?
+  source           String   @default("SAMPLE")
+  updatedAt        DateTime @updatedAt
+  createdAt        DateTime @default(now())
+}
+
 model TeamInvite {
   id         String   @id @default(cuid())
   orgOwnerId String

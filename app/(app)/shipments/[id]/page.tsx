@@ -9,6 +9,7 @@ import { DeleteShipmentButton } from "@/components/shipments/DeleteShipmentButto
 import { ComplianceCheck } from "@/components/shipments/compliance-check";
 import { RiskReport } from "@/components/shipments/risk-report";
 import { SanctionsCheck } from "@/components/shipments/sanctions-check";
+import { IncentiveCalculator } from "@/components/shipments/incentive-calculator";
 import { DocumentsPanel } from "@/components/shipments/documents-panel";
 import { DocumentGenerator } from "@/components/shipments/document-generator";
 
@@ -71,6 +72,8 @@ export default async function ShipmentDetailPage({ params }: { params: { id: str
               <p className="text-muted-foreground text-sm">Product Description</p>
               <p className="text-foreground text-sm mt-1">{shipment.productDesc}</p>
             </div>
+
+            <IncentiveCalculator hsCode={shipment.hsCode} value={shipment.value} currency={shipment.currency} />
           </div>
 
           <div className="border border-border rounded-lg p-5 bg-card">
