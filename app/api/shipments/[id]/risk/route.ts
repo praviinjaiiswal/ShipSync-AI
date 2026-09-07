@@ -1,25 +1,35 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/app/lib/prisma";
-import { getOrgContext } from "@/lib/getOrgContext";
-import { assessRisk } from "@/lib/ai";
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/app/lib/prisma';
+import { withErrorHandler } from '@/lib/api-handler';
+import { requireTenantContext } from '@/lib/tenant';
+import { assertPermission } from '@/lib/rbac/assert-permission';
+import { rateLimiter, RATE_LIMIT_PRESETS } from '@/lib/rate-limit';
+import { assessRisk } from '@/lib/ai';
+import { NotFoundError, ExternalServiceError } from '@/lib/errors';
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
-  const ctx = await getOrgContext();
-  if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+export const POST = withErrorHandler(async (req: NextRequest, { params }: { params: { id: string } }) => {
+  const ctx = await requireTenantContext();
+  assertPermission(ctx.role, 'risk:assess');
+
+  await rateLimiter.check(req, `ai:${ctx.userId}`, RATE_LIMIT_PRESETS.AI);
 
   const shipment = await prisma.shipment.findFirst({
-    where: { id: params.id, userId: ctx.effectiveOwnerId },
+    where: { id: params.id, companyId: ctx.companyId },
   });
-  if (!shipment) return NextResponse.json({ error: "Shipment not found" }, { status: 404 });
+
+  if (!shipment) {
+    throw new NotFoundError('Shipment not found');
+  }
 
   try {
     const result = await assessRisk(shipment);
-    const { countryRiskScore = 0, buyerRiskScore = 0, aiReport = "" } = result;
+    const { countryRiskScore = 0, buyerRiskScore = 0, aiReport = '' } = result;
 
     const riskReport = await prisma.riskReport.upsert({
       where: { shipmentId: shipment.id },
       update: { countryRiskScore, buyerRiskScore, aiReport },
       create: {
+        companyId: ctx.companyId,
         shipmentId: shipment.id,
         countryRiskScore,
         buyerRiskScore,
@@ -27,24 +37,38 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       },
     });
 
-    return NextResponse.json(riskReport);
-  } catch {
-    return NextResponse.json({ error: "AI request failed" }, { status: 502 });
-  }
-}
+    await prisma.activity.create({
+      data: {
+        companyId: ctx.companyId,
+        userId: ctx.userId,
+        shipmentId: shipment.id,
+        action: 'RISK_ASSESSED',
+        details: `Assessed risk for ${shipment.buyerName} (Country Score: ${countryRiskScore}, Buyer Score: ${buyerRiskScore})`,
+      },
+    });
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
-  const ctx = await getOrgContext();
-  if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json(riskReport);
+  } catch (err) {
+    console.error('Risk assessment AI failure:', err);
+    throw new ExternalServiceError('AI risk assessment service failed. Please retry.');
+  }
+});
+
+export const GET = withErrorHandler(async (_req: NextRequest, { params }: { params: { id: string } }) => {
+  const ctx = await requireTenantContext();
+  assertPermission(ctx.role, 'risk:read');
 
   const shipment = await prisma.shipment.findFirst({
-    where: { id: params.id, userId: ctx.effectiveOwnerId },
+    where: { id: params.id, companyId: ctx.companyId },
   });
-  if (!shipment) return NextResponse.json({ error: "Shipment not found" }, { status: 404 });
 
-  const riskReport = await prisma.riskReport.findUnique({
-    where: { shipmentId: params.id },
+  if (!shipment) {
+    throw new NotFoundError('Shipment not found');
+  }
+
+  const riskReport = await prisma.riskReport.findFirst({
+    where: { shipmentId: params.id, companyId: ctx.companyId },
   });
 
   return NextResponse.json(riskReport);
-}
+});

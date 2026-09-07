@@ -15,6 +15,9 @@ export async function getCurrentUser() {
       email,
       name: clerkUser.fullName ?? undefined,
     },
+    include: {
+      company: true,
+    },
   });
 
   return user;

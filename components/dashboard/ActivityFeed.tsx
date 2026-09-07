@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { formatDistanceToNow } from "date-fns";
-import { Activity as ActivityIcon } from "lucide-react";
+import React, { useEffect, useState } from 'react';
+import { formatDistanceToNow } from 'date-fns';
+import { Activity as ActivityIcon } from 'lucide-react';
 
 type ActivityItem = {
   id: string;
@@ -13,9 +13,15 @@ type ActivityItem = {
 };
 
 const ACTION_LABELS: Record<string, string> = {
-  SHIPMENT_CREATED: "created a shipment",
-  SHIPMENT_UPDATED: "updated a shipment",
-  SHIPMENT_DELETED: "deleted a shipment",
+  SHIPMENT_CREATED: 'created a shipment',
+  SHIPMENT_UPDATED: 'updated a shipment',
+  SHIPMENT_DELETED: 'deleted a shipment',
+  DOCUMENT_UPLOADED: 'uploaded a document',
+  DOCUMENT_GENERATED: 'generated a document',
+  COMPLIANCE_RUN: 'ran DGFT compliance check',
+  RISK_ASSESSED: 'assessed shipment risk',
+  SANCTIONS_CHECKED: 'checked sanctions status',
+  LICENSE_ADDED: 'added a license',
 };
 
 export function ActivityFeed() {
@@ -23,9 +29,17 @@ export function ActivityFeed() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/activity")
-      .then((res) => res.json())
-      .then(setActivities)
+    fetch('/api/activity')
+      .then(async (res) => {
+        if (!res.ok) return [];
+        const data = await res.json();
+        return Array.isArray(data) ? data : [];
+      })
+      .then((data) => setActivities(data))
+      .catch((err) => {
+        console.error('Failed to load activities', err);
+        setActivities([]);
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -39,7 +53,7 @@ export function ActivityFeed() {
     );
   }
 
-  if (activities.length === 0) {
+  if (!Array.isArray(activities) || activities.length === 0) {
     return <p className="text-sm text-muted-foreground">Abhi tak koi activity nahi hui.</p>;
   }
 
@@ -50,12 +64,14 @@ export function ActivityFeed() {
           <ActivityIcon className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
           <div>
             <p className="text-foreground">
-              <span className="font-medium">{a.user.name ?? a.user.email}</span>{" "}
-              {ACTION_LABELS[a.action] ?? a.action.replace(/_/g, " ").toLowerCase()}
+              <span className="font-medium">{a.user?.name ?? a.user?.email ?? 'User'}</span>{' '}
+              {ACTION_LABELS[a.action] ?? a.action.replace(/_/g, ' ').toLowerCase()}
               {a.details && <span className="text-muted-foreground"> — {a.details}</span>}
             </p>
             <p className="text-xs text-muted-foreground">
-              {formatDistanceToNow(new Date(a.createdAt), { addSuffix: true })}
+              {a.createdAt
+                ? formatDistanceToNow(new Date(a.createdAt), { addSuffix: true })
+                : 'Recently'}
             </p>
           </div>
         </li>

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import nodemailer from "nodemailer";
+import { withErrorHandler } from "@/lib/api-handler";
+import { rateLimiter, RATE_LIMIT_PRESETS } from "@/lib/rate-limit";
 
 // Proper Backend Validation
 const contactSchema = z.object({
@@ -11,67 +13,56 @@ const contactSchema = z.object({
   message: z.string().trim().min(5, "Message is too short"),
 });
 
-export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const validated = contactSchema.parse(body);
+export const POST = withErrorHandler(async (request: NextRequest) => {
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  await rateLimiter.check(request, `contact:${ip}`, RATE_LIMIT_PRESETS.AUTH);
 
-    console.log("New Contact Submission:", validated);
+  const body = await request.json();
+  const validated = contactSchema.parse(body);
 
-    // Email Sending Logic
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
+  console.log("New Contact Submission:", validated);
 
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: "animusitmanagement@gmail.com",
-      subject: `ShipSync AI: New Inquiry - ${validated.subject.toUpperCase()}`,
-      html: `
-        <div style="font-family: Arial, sans-serif; color: #0E151B; padding: 20px; border: 1px solid #EEF2FB; border-radius: 10px;">
-          <h2 style="color: #2A495B;">New Contact Request</h2>
-          <p><strong>Name:</strong> ${validated.name}</p>
-          <p><strong>Email:</strong> ${validated.email}</p>
-          <p><strong>Company:</strong> ${validated.company || "N/A"}</p>
-          <p><strong>Subject:</strong> ${validated.subject}</p>
-          <hr style="border: 1px solid #EEF2FB; margin: 20px 0;" />
-          <p><strong>Message:</strong></p>
-          <p style="white-space: pre-wrap; background: #f9f9f9; padding: 15px; border-radius: 5px;">${validated.message}</p>
-        </div>
-      `,
-    };
+  // Email Sending Logic
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
+  });
 
-    await transporter.sendMail(mailOptions);
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: "animusitmanagement@gmail.com",
+    subject: `ShipSync AI: New Inquiry - ${validated.subject.toUpperCase()}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; color: #0E151B; padding: 20px; border: 1px solid #EEF2FB; border-radius: 10px;">
+        <h2 style="color: #2A495B;">New Contact Request</h2>
+        <p><strong>Name:</strong> ${validated.name}</p>
+        <p><strong>Email:</strong> ${validated.email}</p>
+        <p><strong>Company:</strong> ${validated.company || "N/A"}</p>
+        <p><strong>Subject:</strong> ${validated.subject}</p>
+        <hr style="border: 1px solid #EEF2FB; margin: 20px 0;" />
+        <p><strong>Message:</strong></p>
+        <p style="white-space: pre-wrap; background: #f9f9f9; padding: 15px; border-radius: 5px;">${validated.message}</p>
+      </div>
+    `,
+  };
 
-    // API Optimization: Ensure no caching for mutations
-    const headers = {
-      "Cache-Control": "no-store, max-age=0",
-      "Pragma": "no-cache"
-    };
+  await transporter.sendMail(mailOptions);
 
-    return NextResponse.json(
-      {
-        success: true,
-        message: "Message received successfully",
-        data: validated,
-      },
-      { status: 201, headers }
-    );
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { success: false, error: "Validation failed", details: error.errors },
-        { status: 400 }
-      );
-    }
+  // API Optimization: Ensure no caching for mutations
+  const headers = {
+    "Cache-Control": "no-store, max-age=0",
+    "Pragma": "no-cache",
+  };
 
-    return NextResponse.json(
-      { success: false, error: "Internal server error" },
-      { status: 500 }
-    );
-  }
-}
+  return NextResponse.json(
+    {
+      success: true,
+      message: "Message received successfully",
+      data: validated,
+    },
+    { status: 201, headers }
+  );
+});

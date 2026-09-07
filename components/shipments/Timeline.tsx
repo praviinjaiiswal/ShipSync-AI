@@ -1,18 +1,31 @@
 import { Check } from "lucide-react";
 
-const STEPS = ["DRAFT", "DOCUMENTS_READY", "UNDER_REVIEW", "CLEARED", "SHIPPED", "DELIVERED"];
+const STEPS = [
+  "DRAFT",
+  "DOCUMENTS_READY",
+  "UNDER_REVIEW",
+  "SHIPPING_BILL_GENERATED",
+  "CUSTOMS_CLEARED",
+  "GATE_IN",
+  "SHIPPED",
+  "DELIVERED",
+];
 
 const STEP_LABELS: Record<string, string> = {
-  DRAFT: "Draft",
-  DOCUMENTS_READY: "Documents Ready",
-  UNDER_REVIEW: "Under Review",
-  CLEARED: "Cleared",
-  SHIPPED: "Shipped",
+  DRAFT: "Draft Created",
+  DOCUMENTS_READY: "Docs Ready",
+  UNDER_REVIEW: "Review",
+  SHIPPING_BILL_GENERATED: "Shipping Bill Filed",
+  CUSTOMS_CLEARED: "LEO Granted",
+  GATE_IN: "Port Gate-In",
+  CLEARED: "LEO Granted",
+  SHIPPED: "EGM Filed / Shipped",
   DELIVERED: "Delivered",
 };
 
 export function Timeline({ currentStatus }: { currentStatus: string }) {
-  const currentIndex = STEPS.indexOf(currentStatus);
+  const normalizedStatus = currentStatus === "CLEARED" ? "CUSTOMS_CLEARED" : currentStatus;
+  const currentIndex = STEPS.indexOf(normalizedStatus);
 
   return (
     <div className="space-y-0">

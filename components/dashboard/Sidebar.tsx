@@ -2,13 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Package, FileText, ShieldCheck, Settings, Ship, X } from "lucide-react";
+import { LayoutDashboard, Package, ArrowDownToLine, FileText, ShieldCheck, Settings, Ship, X, Radio } from "lucide-react";
 
 const navLinks = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/shipments", label: "Shipments", icon: Package },
+  { href: "/shipments", label: "Export Shipments", icon: Package },
+  { href: "/imports", label: "Imports", icon: ArrowDownToLine },
   { href: "/documents", label: "Documents", icon: FileText },
   { href: "/compliance", label: "Compliance", icon: ShieldCheck },
+  { href: "/settings/customs", label: "Customs EDI", icon: Radio },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 

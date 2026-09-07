@@ -1,34 +1,48 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/app/lib/prisma";
-import { getOrgContext } from "@/lib/getOrgContext";
-import { licenseSchema } from "@/lib/validations";
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/app/lib/prisma';
+import { withErrorHandler } from '@/lib/api-handler';
+import { requireTenantContext } from '@/lib/tenant';
+import { assertPermission } from '@/lib/rbac/assert-permission';
+import { licenseSchema } from '@/lib/validations';
+import { ValidationError } from '@/lib/errors';
 
-export async function GET() {
-  const ctx = await getOrgContext();
-  if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+export const GET = withErrorHandler(async (req: NextRequest) => {
+  const ctx = await requireTenantContext();
+  assertPermission(ctx.role, 'license:read');
+
+  const { searchParams } = new URL(req.url);
+  const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '50', 10)));
+  const offset = Math.max(0, parseInt(searchParams.get('offset') || searchParams.get('skip') || '0', 10));
 
   const licenses = await prisma.license.findMany({
-    where: { userId: ctx.effectiveOwnerId },
-    orderBy: { expiryDate: "asc" },
+    where: { companyId: ctx.companyId },
+    orderBy: { expiryDate: 'asc' },
+    include: {
+      user: { select: { id: true, name: true, email: true } },
+    },
+    take: limit,
+    skip: offset,
   });
 
   return NextResponse.json(licenses);
-}
+});
 
-export async function POST(req: NextRequest) {
-  const ctx = await getOrgContext();
-  if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+export const POST = withErrorHandler(async (req: NextRequest) => {
+  const ctx = await requireTenantContext();
+  assertPermission(ctx.role, 'license:create');
 
   const body = await req.json();
   const parsed = licenseSchema.safeParse(body);
 
   if (!parsed.success) {
-    return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+    throw new ValidationError('Validation failed for license', parsed.error.flatten());
   }
 
   const license = await prisma.license.create({
     data: {
-      userId: ctx.effectiveOwnerId,
+      companyId: ctx.companyId,
+      userId: ctx.userId,
       type: parsed.data.type,
       name: parsed.data.name,
       licenseNumber: parsed.data.licenseNumber || null,
@@ -37,5 +51,14 @@ export async function POST(req: NextRequest) {
     },
   });
 
+  await prisma.activity.create({
+    data: {
+      companyId: ctx.companyId,
+      userId: ctx.userId,
+      action: 'LICENSE_ADDED',
+      details: `Added license "${license.name}" (${license.type})`,
+    },
+  });
+
   return NextResponse.json(license, { status: 201 });
-}
+});

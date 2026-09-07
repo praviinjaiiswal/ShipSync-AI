@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Space_Grotesk } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { ThemeProvider } from "@/components/theme-provider";
+import { ToastProvider } from "@/components/ui/toast";
 import "./globals.css";
 
 const inter = Inter({
@@ -116,7 +117,9 @@ export default function RootLayout({
         </head>
         <body className="min-h-screen bg-background font-sans antialiased">
           <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
-            {children}
+            <ToastProvider>
+              {children}
+            </ToastProvider>
           </ThemeProvider>
         </body>
       </html>

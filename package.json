@@ -7,6 +7,15 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "test:chunk0": "npx tsx scripts/test-chunk0.ts",
+    "test:chunk1": "npx tsx scripts/test-chunk1.ts",
+    "test:chunk2": "npx tsx scripts/test-chunk2.ts",
+    "test:chunk3": "npx tsx scripts/test-chunk3.ts",
+    "test:chunk4": "npx tsx scripts/test-chunk4.ts",
+    "test:chunk5": "npx tsx scripts/test-chunk5.ts",
+    "test:chunk6": "npx tsx scripts/test-chunk6.ts",
+    "test:chunk7": "npx tsx scripts/test-chunk7.ts",
+    "test": "npx tsx scripts/test-chunk0.ts && npx tsx scripts/test-chunk1.ts && npx tsx scripts/test-chunk2.ts && npx tsx scripts/test-chunk3.ts && npx tsx scripts/test-chunk4.ts && npx tsx scripts/test-chunk5.ts && npx tsx scripts/test-chunk6.ts && npx tsx scripts/test-chunk7.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {

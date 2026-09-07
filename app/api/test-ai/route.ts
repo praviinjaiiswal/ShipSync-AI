@@ -1,5 +1,6 @@
-import { NextResponse } from 'next/server'
+import { NextResponse } from 'next/server';
+import { withErrorHandler } from '@/lib/api-handler';
 
-export async function GET() {
-  return NextResponse.json({ message: 'AI test route working' })
-}
+export const GET = withErrorHandler(async () => {
+  return NextResponse.json({ message: 'AI test route working' });
+});

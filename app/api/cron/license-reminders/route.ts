@@ -1,13 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/app/lib/prisma";
 import { sendLicenseExpiryReminder } from "@/lib/email";
+import { withErrorHandler } from "@/lib/api-handler";
+import { AuthError } from "@/lib/errors";
 
 const REMINDER_DAYS = [30, 15, 7];
 
-export async function GET(req: NextRequest) {
+export const GET = withErrorHandler(async (req: NextRequest) => {
   const authHeader = req.headers.get("authorization");
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    throw new AuthError("Unauthorized cron invocation");
   }
 
   const now = new Date();
@@ -32,4 +34,4 @@ export async function GET(req: NextRequest) {
   }
 
   return NextResponse.json({ success: true, remindersSent: sent });
-}
+});

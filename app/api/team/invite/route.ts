@@ -1,37 +1,63 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/app/lib/prisma";
-import { getOrgContext } from "@/lib/getOrgContext";
-import { sendTeamInviteEmail } from "@/lib/email";
-import { z } from "zod";
+import { NextRequest, NextResponse } from 'next/server';
+import crypto from 'crypto';
+import { prisma } from '@/app/lib/prisma';
+import { withErrorHandler } from '@/lib/api-handler';
+import { requireTenantContext } from '@/lib/tenant';
+import { assertPermission } from '@/lib/rbac/assert-permission';
+import { rateLimiter, RATE_LIMIT_PRESETS } from '@/lib/rate-limit';
+import { teamInviteSchema } from '@/lib/validations';
+import { ValidationError } from '@/lib/errors';
+import { sendTeamInviteEmail } from '@/lib/email';
 
-const inviteSchema = z.object({
-  email: z.string().email(),
-  role: z.enum(["ADMIN", "EXPORTER", "COMPLIANCE_OFFICER"]),
-});
-
-export async function POST(req: NextRequest) {
-  const ctx = await getOrgContext();
-  if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  if (!ctx.isOwner && ctx.role !== "ADMIN") {
-    return NextResponse.json({ error: "Permission denied" }, { status: 403 });
-  }
+export const POST = withErrorHandler(async (req: NextRequest) => {
+  const ctx = await requireTenantContext();
+  assertPermission(ctx.role, 'team:invite');
+  await rateLimiter.check(req, `team_invite:${ctx.companyId}`, RATE_LIMIT_PRESETS.AUTH);
 
   const body = await req.json();
-  const parsed = inviteSchema.safeParse(body);
+  const parsed = teamInviteSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+    throw new ValidationError('Invalid invite data', parsed.error.flatten());
   }
 
-  const invite = await prisma.teamInvite.create({
-    data: {
-      orgOwnerId: ctx.effectiveOwnerId,
-      email: parsed.data.email,
-      role: parsed.data.role,
+  const { email, role } = parsed.data;
+
+  // Check if user is already a member of this company
+  const existingMember = await prisma.user.findFirst({
+    where: {
+      email: { equals: email, mode: 'insensitive' },
+      companyId: ctx.companyId,
+      isActive: true,
     },
   });
 
-  await sendTeamInviteEmail(parsed.data.email, ctx.user.name ?? ctx.user.email, parsed.data.role, invite.token);
+  if (existingMember) {
+    throw new ValidationError('This user is already a member of your company');
+  }
+
+  // Generate a secure 32-byte hex token
+  const token = crypto.randomBytes(32).toString('hex');
+  const expiresAt = new Date(Date.now() + 72 * 60 * 60 * 1000); // 72 hours (Chunk 0 spec)
+
+  // Upsert or create invite
+  const invite = await prisma.teamInvite.create({
+    data: {
+      companyId: ctx.companyId,
+      email: email.toLowerCase(),
+      role,
+      token,
+      invitedBy: ctx.userId,
+      expiresAt,
+    },
+  });
+
+  // Send invite email (gracefully catch email failure so invite still succeeds)
+  try {
+    const inviterName = ctx.user.name || ctx.user.email;
+    await sendTeamInviteEmail(email, inviterName, role, token);
+  } catch (err) {
+    console.error('Failed to send invite email:', err);
+  }
 
   return NextResponse.json(invite, { status: 201 });
-}
+});

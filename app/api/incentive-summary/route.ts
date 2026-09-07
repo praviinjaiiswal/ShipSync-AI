@@ -1,17 +1,19 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/app/lib/prisma";
-import { getOrgContext } from "@/lib/getOrgContext";
+import { NextResponse } from 'next/server';
+import { prisma } from '@/app/lib/prisma';
+import { withErrorHandler } from '@/lib/api-handler';
+import { requireTenantContext } from '@/lib/tenant';
+import { assertPermission } from '@/lib/rbac/assert-permission';
 
-export async function GET() {
-  const ctx = await getOrgContext();
-  if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+export const GET = withErrorHandler(async () => {
+  const ctx = await requireTenantContext();
+  assertPermission(ctx.role, 'analytics:read');
 
   const shipments = await prisma.shipment.findMany({
-    where: { userId: ctx.effectiveOwnerId },
+    where: { companyId: ctx.companyId },
     select: { hsCode: true, value: true },
   });
 
-  const hsCodes = [...new Set(shipments.map((s) => s.hsCode))];
+  const hsCodes = Array.from(new Set(shipments.map((s) => s.hsCode)));
   const rates = await prisma.dutyIncentiveRate.findMany({
     where: { hsCode: { in: hsCodes } },
   });
@@ -29,5 +31,9 @@ export async function GET() {
     }
   }
 
-  return NextResponse.json({ totalEstimated, unmatchedCount, totalShipments: shipments.length });
-}
+  return NextResponse.json({
+    totalEstimated: Math.round(totalEstimated * 100) / 100,
+    unmatchedCount,
+    totalShipments: shipments.length,
+  });
+});

@@ -9,20 +9,42 @@ import { DeleteShipmentButton } from "@/components/shipments/DeleteShipmentButto
 import { ComplianceCheck } from "@/components/shipments/compliance-check";
 import { RiskReport } from "@/components/shipments/risk-report";
 import { SanctionsCheck } from "@/components/shipments/sanctions-check";
-import { IncentiveCalculator } from "@/components/shipments/incentive-calculator";
+import { ShippingBillCard } from "@/components/shipments/ShippingBillCard";
+import { ExportIncentiveCard } from "@/components/shipments/ExportIncentiveCard";
 import { DocumentsPanel } from "@/components/shipments/documents-panel";
 import { DocumentGenerator } from "@/components/shipments/document-generator";
+import { LogisticsPanel } from "@/components/logistics/LogisticsPanel";
+import { ExportRealisationCard } from "@/components/financial/ExportRealisationCard";
+import { IncentiveClaimCard } from "@/components/financial/IncentiveClaimCard";
 
 export default async function ShipmentDetailPage({ params }: { params: { id: string } }) {
   const user = await getCurrentUser();
   if (!user) redirect("/sign-in");
 
   const shipment = await prisma.shipment.findFirst({
-    where: { id: params.id, userId: user.id },
-    include: { documents: true, complianceChecks: true, riskReport: true },
+    where: {
+      id: params.id,
+      companyId: user.companyId,
+    },
+    include: {
+      documents: true,
+      complianceChecks: true,
+      riskReport: true,
+      shippingBill: true,
+      amendments: { orderBy: { createdAt: "desc" } },
+      logisticsEvents: {
+        include: { recorder: { select: { name: true, email: true } } },
+        orderBy: { timestamp: "desc" },
+      },
+      transporterBookings: {
+        orderBy: { createdAt: "desc" },
+      },
+    },
   });
 
   if (!shipment) notFound();
+
+  const declaredFob = shipment.shippingBill?.fobValue ?? shipment.value;
 
   return (
     <div className="space-y-6 max-w-4xl">
@@ -44,6 +66,44 @@ export default async function ShipmentDetailPage({ params }: { params: { id: str
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="md:col-span-2 space-y-6">
+          <ShippingBillCard shipment={shipment} />
+
+          <ExportIncentiveCard
+            shipmentId={shipment.id}
+            hsCode={shipment.hsCode}
+            fobValue={declaredFob}
+            currency={shipment.currency}
+            shippingBill={shipment.shippingBill}
+          />
+
+          <LogisticsPanel
+            shipmentId={shipment.id}
+            isExport={true}
+            events={shipment.logisticsEvents}
+            bookings={shipment.transporterBookings}
+          />
+
+          <ExportRealisationCard
+            shipmentId={shipment.id}
+            invoiceValue={declaredFob}
+            currency={shipment.currency}
+            userRole={user.role}
+          />
+
+          <IncentiveClaimCard
+            shipmentId={shipment.id}
+            shipmentStatus={shipment.status}
+            calculatedIncentives={
+              shipment.shippingBill
+                ? {
+                    rodtepAmount: shipment.shippingBill.rodtepAmount || 0,
+                    drawbackAmount: shipment.shippingBill.drawbackAmount || 0,
+                  }
+                : undefined
+            }
+            userRole={user.role}
+          />
+
           <div className="border border-border rounded-lg p-5 bg-card space-y-4">
             <h2 className="text-sm font-semibold text-foreground">Shipment Details</h2>
 
@@ -53,9 +113,9 @@ export default async function ShipmentDetailPage({ params }: { params: { id: str
                 <p className="text-foreground font-medium">{shipment.hsCode}</p>
               </div>
               <div>
-                <p className="text-muted-foreground">Value</p>
+                <p className="text-muted-foreground">Declared Value</p>
                 <p className="text-foreground font-medium">
-                  {shipment.currency} {shipment.value.toLocaleString()}
+                  {shipment.currency} {declaredFob.toLocaleString()}
                 </p>
               </div>
               <div>
@@ -72,8 +132,6 @@ export default async function ShipmentDetailPage({ params }: { params: { id: str
               <p className="text-muted-foreground text-sm">Product Description</p>
               <p className="text-foreground text-sm mt-1">{shipment.productDesc}</p>
             </div>
-
-            <IncentiveCalculator hsCode={shipment.hsCode} value={shipment.value} currency={shipment.currency} />
           </div>
 
           <div className="border border-border rounded-lg p-5 bg-card">

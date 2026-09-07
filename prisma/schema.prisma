@@ -7,32 +7,80 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ===== Multi-Tenant Root Entity =====
+
+model Company {
+  id          String   @id @default(cuid())
+  name        String
+  gstNumber   String?  @unique
+  ieCode      String?  @unique
+  panNumber   String?  @unique
+  address     String?
+  plan        Plan     @default(FREE)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users            User[]
+  shipments        Shipment[]
+  importShipments  ImportShipment[]
+  billsOfEntry     BillOfEntry[]
+  documents        Document[]
+  complianceChecks ComplianceCheck[]
+  riskReports      RiskReport[]
+  sanctionsChecks  SanctionsCheck[]
+  licenses         License[]
+  teamInvites      TeamInvite[]
+  activities       Activity[]
+  subscriptions    Subscription[]
+  customsCredentials CustomsCredential[]
+  customsFilingJobs  CustomsFilingJob[]
+  integrationLogs    IntegrationLog[]
+  customsOverrides   CustomsOverrideAudit[]
+  shippingBills      ShippingBill[]
+  exportAmendments   ExportAmendment[]
+  logisticsEvents    LogisticsEvent[]
+  transporterBookings TransporterBooking[]
+  exportRealisations  ExportRealisation[]
+  dutyPayments        DutyPayment[]
+  incentiveClaims     IncentiveClaim[]
+  financialAuditLogs  FinancialAuditLog[]
+}
+
 // ===== ShipSync Core (App Users) =====
 
 model User {
-  id            String    @id @default(cuid())
-  clerkId       String    @unique
-  email         String    @unique
-  name          String?
-  companyName   String?
-  iecCode       String?   @unique
-  gstNumber     String?   @unique
-  pan           String?   @unique
-  phone         String?
-  role          UserRole  @default(EXPORTER)
-  plan          Plan      @default(FREE)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  shipments     Shipment[]
-  activities    Activity[]
-  subscription  Subscription?
-  licenses      License[]
+  id                  String    @id @default(cuid())
+  clerkId             String    @unique
+  email               String    @unique
+  name                String?
+  phone               String?
+  designation         String?
+  profileImageUrl     String?
+  role                UserRole  @default(OPS_EXECUTIVE)
+  isActive            Boolean   @default(true)
+  onboardingComplete  Boolean   @default(false)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 
-  organizationOwnerId String?
-  organizationOwner   User?   @relation("OrgMembers", fields: [organizationOwnerId], references: [id])
-  teamMembers         User[]  @relation("OrgMembers")
+  companyId    String?
+  company      Company?  @relation(fields: [companyId], references: [id])
 
-  sentInvites   TeamInvite[]
+  shipments        Shipment[]
+  importShipments  ImportShipment[]
+  activities       Activity[]
+  subscription     Subscription?
+  licenses         License[]
+  recordedLogisticsEvents LogisticsEvent[] @relation("RecordedLogisticsEvents")
+  transporterBookings     TransporterBooking[] @relation("UserTransporterBookings")
+  recordedRealisations    ExportRealisation[]  @relation("RecordedRealisations")
+  confirmedRealisations   ExportRealisation[]  @relation("ConfirmedRealisations")
+  recordedDutyPayments    DutyPayment[]        @relation("RecordedDutyPayments")
+  confirmedDutyPayments   DutyPayment[]        @relation("ConfirmedDutyPayments")
+  recordedIncentiveClaims IncentiveClaim[]     @relation("RecordedIncentiveClaims")
+  sanctionedIncentiveClaims IncentiveClaim[]   @relation("SanctionedIncentiveClaims")
+  financialAuditLogs      FinancialAuditLog[]  @relation("UserFinancialAudits")
+
+  @@index([companyId])
 }
 
 model DutyIncentiveRate {
@@ -42,24 +90,33 @@ model DutyIncentiveRate {
   rodtepRate       Float?
   rodtepCapPerUnit Float?
   dutyDrawbackRate Float?
+  exportDutyRate   Float?   @default(0.0)
   source           String   @default("SAMPLE")
   updatedAt        DateTime @updatedAt
   createdAt        DateTime @default(now())
 }
 
 model TeamInvite {
-  id         String   @id @default(cuid())
-  orgOwnerId String
-  orgOwner   User     @relation(fields: [orgOwnerId], references: [id], onDelete: Cascade)
+  id         String     @id @default(cuid())
+  companyId  String?
+  company    Company?   @relation(fields: [companyId], references: [id], onDelete: Cascade)
   email      String
-  role       UserRole @default(EXPORTER)
-  token      String   @unique @default(cuid())
-  status     String   @default("PENDING")
-  createdAt  DateTime @default(now())
+  role       UserRole   @default(OPS_EXECUTIVE)
+  token      String     @unique
+  status     String     @default("PENDING")
+  expiresAt  DateTime?
+  usedAt     DateTime?
+  invitedBy  String?
+  createdAt  DateTime   @default(now())
+
+  @@index([companyId])
+  @@index([token])
 }
 
 model Shipment {
   id              String           @id @default(cuid())
+  companyId       String?
+  company         Company?         @relation(fields: [companyId], references: [id])
   userId          String
   user            User             @relation(fields: [userId], references: [id])
   buyerName       String
@@ -71,6 +128,9 @@ model Shipment {
   currency        String           @default("USD")
   incoterm        String           @default("FOB")
   status          ShipmentStatus   @default(DRAFT)
+  portOfLoading   String?
+  portOfDischarge String?
+  isLocked        Boolean          @default(false)
   complianceScore Int?             @default(0)
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
@@ -78,21 +138,55 @@ model Shipment {
   complianceChecks ComplianceCheck[]
   riskReport       RiskReport?
   sanctionsCheck   SanctionsCheck?
+  shippingBill     ShippingBill?
+  amendments       ExportAmendment[]
+  logisticsEvents  LogisticsEvent[]
+  transporterBookings TransporterBooking[]
+  exportRealisations  ExportRealisation[]
+  incentiveClaims     IncentiveClaim[]
+
+  @@index([companyId])
+  @@index([companyId, status])
+  @@index([companyId, createdAt])
+  @@index([userId])
 }
 
 model Document {
-  id              String   @id @default(cuid())
-  shipmentId      String
-  shipment        Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
-  docType         DocType
-  fileUrl         String?
-  aiExtractedData Json?
-  status          String   @default("PENDING")
-  createdAt       DateTime @default(now())
+  id               String          @id @default(cuid())
+  companyId        String?
+  company          Company?        @relation(fields: [companyId], references: [id])
+  shipmentId       String?
+  shipment         Shipment?       @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  importShipmentId String?
+  importShipment   ImportShipment? @relation(fields: [importShipmentId], references: [id], onDelete: Cascade)
+  docType          DocType
+  docTypeCode      String?         // Statutory e-Sanchit code (e.g. '010001')
+  fileName         String?
+  fileUrl          String?
+  fileSize         Int?
+  mimeType         String?
+  ocrText          String?
+  extractedData    Json?           // Canonical extracted payload
+  aiExtractedData  Json?           // Raw AI payload
+  discrepancies    Json?           // Cross-document discrepancies
+  irnNumber        String?         // e-Sanchit Image Reference Number
+  verifiedBy       String?         // User ID of verifying officer
+  verifiedAt       DateTime?
+  status           DocumentStatus  @default(PENDING)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt @default(now())
+
+  @@index([companyId])
+  @@index([shipmentId])
+  @@index([importShipmentId])
+  @@index([companyId, status])
+  @@index([companyId, docType])
 }
 
 model ComplianceCheck {
   id          String   @id @default(cuid())
+  companyId   String?
+  company     Company? @relation(fields: [companyId], references: [id])
   shipmentId  String
   shipment    Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
   checkType   String
@@ -100,29 +194,42 @@ model ComplianceCheck {
   details     String?
   aiAnalysis  String?
   createdAt   DateTime @default(now())
+
+  @@index([companyId])
+  @@index([shipmentId])
 }
 
 model RiskReport {
   id              String   @id @default(cuid())
+  companyId       String?
+  company         Company? @relation(fields: [companyId], references: [id])
   shipmentId      String   @unique
   shipment        Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
   countryRiskScore Int?
   buyerRiskScore   Int?
   aiReport         String?
   createdAt        DateTime @default(now())
+
+  @@index([companyId])
 }
 
 model SanctionsCheck {
   id          String   @id @default(cuid())
+  companyId   String?
+  company     Company? @relation(fields: [companyId], references: [id])
   shipmentId  String   @unique
   shipment    Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
   matchFound  Boolean  @default(false)
   matches     Json?
   checkedAt   DateTime @default(now())
+
+  @@index([companyId])
 }
 
 model Subscription {
   id                    String   @id @default(cuid())
+  companyId             String?
+  company               Company? @relation(fields: [companyId], references: [id])
   userId                String   @unique
   user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   plan                  Plan
@@ -131,22 +238,51 @@ model Subscription {
   currentPeriodEnd      DateTime?
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
+
+  @@index([companyId])
 }
 
 model Activity {
   id          String   @id @default(cuid())
+  companyId   String?
+  company     Company? @relation(fields: [companyId], references: [id])
   userId      String
   user        User     @relation(fields: [userId], references: [id])
   shipmentId  String?
   action      String
   details     String?
   createdAt   DateTime @default(now())
+
+  @@index([companyId])
+  @@index([companyId, createdAt])
+}
+
+model License {
+  id            String      @id @default(cuid())
+  companyId     String?
+  company       Company?    @relation(fields: [companyId], references: [id])
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type          LicenseType
+  name          String
+  licenseNumber String?
+  issueDate     DateTime?
+  expiryDate    DateTime
+  fileUrl       String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([companyId])
+  @@index([companyId, expiryDate])
 }
 
 enum UserRole {
+  OWNER
   ADMIN
-  EXPORTER
   COMPLIANCE_OFFICER
+  OPS_EXECUTIVE
+  EXPORTER
+  VIEWER
 }
 
 enum Plan {
@@ -160,23 +296,12 @@ enum ShipmentStatus {
   DRAFT
   DOCUMENTS_READY
   UNDER_REVIEW
+  SHIPPING_BILL_GENERATED
+  CUSTOMS_CLEARED
+  GATE_IN
   CLEARED
   SHIPPED
   DELIVERED
-}
-
-model License {
-  id            String      @id @default(cuid())
-  userId        String
-  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type          LicenseType
-  name          String
-  licenseNumber String?
-  issueDate     DateTime?
-  expiryDate    DateTime
-  fileUrl       String?
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
 }
 
 enum LicenseType {
@@ -194,8 +319,21 @@ enum DocType {
   CERTIFICATE_OF_ORIGIN
   SHIPPING_BILL
   BILL_OF_LADING
+  BILL_OF_ENTRY
+  INSURANCE_CERTIFICATE
+  TEST_REPORT
   LUT
   OTHER
+}
+
+enum DocumentStatus {
+  PENDING
+  UPLOADED
+  EXTRACTED
+  VERIFIED
+  ESANCHIT_READY
+  ESANCHIT_UPLOADED
+  REJECTED
 }
 
 // ===== Blog (Website Content) =====
@@ -237,4 +375,587 @@ enum PostStatus {
   DRAFT
   PUBLISHED
   ARCHIVED
+}
+
+// ===== Chunk 1: Import Module (Bill of Entry, Import Duty, Licensing) =====
+
+model ImportShipment {
+  id              String               @id @default(cuid())
+  companyId       String
+  company         Company              @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User                 @relation(fields: [userId], references: [id])
+  importerName    String
+  importerIEC     String
+  supplierName    String
+  supplierCountry String
+  portOfImport    String
+  igmNumber       String?
+  blOrAwbNumber   String?
+  hsCode          String
+  invoiceValue    Float
+  currency        String               @default("USD")
+  incoterm        String               @default("CIF")
+  assessableValue Float
+  status          ImportShipmentStatus @default(IGM_FILED)
+  isLocked        Boolean              @default(false)
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+
+  billOfEntry     BillOfEntry?
+  amendments      ImportAmendment[]
+  filingJobs       CustomsFilingJob[]
+  customsOverrides CustomsOverrideAudit[]
+  documents        Document[]
+  logisticsEvents  LogisticsEvent[]
+  transporterBookings TransporterBooking[]
+  dutyPayments        DutyPayment[]
+
+  @@index([companyId])
+  @@index([companyId, status])
+  @@index([companyId, createdAt])
+  @@index([userId])
+}
+
+model BillOfEntry {
+  id               String         @id @default(cuid())
+  companyId        String
+  company          Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  importShipmentId String         @unique
+  importShipment   ImportShipment @relation(fields: [importShipmentId], references: [id], onDelete: Cascade)
+  beNumber         String
+  beDate           DateTime       @default(now())
+  dutyBreakdown    Json
+  totalDutyPayable Float
+  paymentStatus    String         @default("PENDING")
+  challanNumber    String?
+  dutyPayments     DutyPayment[]
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  @@index([companyId])
+  @@index([companyId, beNumber])
+}
+
+model ImportAmendment {
+  id               String         @id @default(cuid())
+  companyId        String
+  importShipmentId String
+  importShipment   ImportShipment @relation(fields: [importShipmentId], references: [id], onDelete: Cascade)
+  version          Int
+  amendedBy        String
+  reason           String
+  previousValues   Json
+  newValues        Json
+  createdAt        DateTime       @default(now())
+
+  @@index([companyId])
+  @@index([importShipmentId])
+}
+
+model ImportDutyRate {
+  id                    String    @id @default(cuid())
+  hsCode                String    @unique
+  description           String?
+  bcdRate               Float
+  igstRate              Float
+  cessRate              Float     @default(0.0)
+  effectiveFrom         DateTime  @default(now())
+  effectiveTo           DateTime?
+  sourceNotificationRef String    @default("Customs Notification No. 50/2017-Customs")
+  updatedBy             String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([hsCode])
+}
+
+model ImportDutyRateAudit {
+  id           String   @id @default(cuid())
+  hsCode       String
+  previousData Json?
+  newData      Json
+  changedBy    String
+  changedAt    DateTime @default(now())
+
+  @@index([hsCode])
+}
+
+model RestrictedItemsList {
+  id                  String       @id @default(cuid())
+  hsCode              String       @unique
+  description         String?
+  policy              ImportPolicy @default(FREE)
+  policyCondition     String?
+  requiredLicenseType String?
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+
+  @@index([hsCode])
+}
+
+enum ImportShipmentStatus {
+  IGM_FILED
+  BOE_FILED
+  ASSESSED
+  DUTY_PAID
+  EXAMINED
+  OUT_OF_CHARGE
+  DELIVERED
+}
+
+enum ImportPolicy {
+  FREE
+  RESTRICTED
+  PROHIBITED
+  STE
+}
+
+// ===== Chunk 2: Customs Integration Models =====
+
+model CustomsCredential {
+  id            String             @id @default(cuid())
+  companyId     String
+  company       Company            @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  service       CustomsServiceType
+  environment   CustomsEnvironment @default(SANDBOX)
+  
+  // AES-256-GCM encrypted payload (stores password, dscPin, certificateData, etc.)
+  encryptedData String
+  iv            String
+  authTag       String
+
+  // Public metadata (safe to display to client)
+  icegateId     String?
+  iecCode       String?
+  portCode      String?
+  dscExpiry     DateTime?
+  isActive      Boolean            @default(true)
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  @@unique([companyId, service, environment])
+  @@index([companyId])
+}
+
+model CustomsFilingJob {
+  id               String             @id @default(cuid())
+  companyId        String
+  company          Company            @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  importShipmentId String?
+  importShipment   ImportShipment?    @relation(fields: [importShipmentId], references: [id], onDelete: SetNull)
+  service          CustomsServiceType
+  jobType          CustomsJobType
+  status           CustomsJobStatus   @default(QUEUED)
+  
+  filingRefNumber  String?            // Shipsync internal filing tracking reference
+  ackNumber        String?            // Official ICEGATE acknowledgement number
+  irnNumber        String?            // e-Sanchit Image Reference Number
+  
+  payload          Json?              // Redacted input payload
+  response         Json?              // Parsed gateway response
+  
+  retryCount       Int                @default(0)
+  maxRetries       Int                @default(5)
+  nextRetryAt      DateTime?
+  lastError        String?
+  
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  @@index([companyId])
+  @@index([importShipmentId])
+  @@index([status, nextRetryAt])
+}
+
+model IntegrationLog {
+  id              String               @id @default(cuid())
+  companyId       String
+  company         Company              @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  service         CustomsServiceType
+  action          String
+  status          IntegrationLogStatus
+  durationMs      Int
+  requestSummary  Json?                // Scrubbed/redacted request payload
+  responseSummary Json?                // Scrubbed response payload
+  errorCode       String?
+  errorMessage    String?
+  initiatedBy     String?              // User ID who initiated or 'SYSTEM_QUEUE'
+  createdAt       DateTime             @default(now())
+
+  @@index([companyId])
+  @@index([service, createdAt])
+}
+
+model CustomsOverrideAudit {
+  id               String         @id @default(cuid())
+  companyId        String
+  company          Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  importShipmentId String
+  importShipment   ImportShipment @relation(fields: [importShipmentId], references: [id], onDelete: Cascade)
+  previousStatus   String
+  newStatus        String
+  reason           String
+  statutoryRef     String?
+  approvedBy       String         // userId
+  createdAt        DateTime       @default(now())
+
+  @@index([companyId])
+  @@index([importShipmentId])
+}
+
+enum CustomsServiceType {
+  ICEGATE
+  DGFT
+  ESANCHIT
+}
+
+enum CustomsEnvironment {
+  SANDBOX
+  PRODUCTION
+}
+
+enum CustomsJobType {
+  BE_FILING
+  STATUS_QUERY
+  ESANCHIT_UPLOAD
+  DUTY_PAYMENT_VERIFICATION
+}
+
+enum CustomsJobStatus {
+  QUEUED
+  PROCESSING
+  SUBMITTED
+  ACKNOWLEDGED
+  FAILED
+  CIRCUIT_BROKEN
+}
+
+enum IntegrationLogStatus {
+  SUCCESS
+  FAILED
+  TIMEOUT
+  CIRCUIT_BROKEN
+}
+
+// ===== Chunk 4: Export Customs Models =====
+
+model ShippingBill {
+  id                   String          @id @default(cuid())
+  companyId            String
+  company              Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  shipmentId           String          @unique
+  shipment             Shipment        @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  sbNumber             String
+  sbDate               DateTime        @default(now())
+  portOfLoading        String
+  portOfDischarge      String
+  countryOfDestination String
+  fobValue             Float
+  currency             String          @default("USD")
+
+  rodtepRate           Float           @default(0.0)
+  rodtepAmount         Float           @default(0.0)
+  drawbackRate         Float           @default(0.0)
+  drawbackAmount       Float           @default(0.0)
+  exportDutyRate       Float           @default(0.0)
+  exportDutyAmount     Float           @default(0.0)
+  totalIncentiveAmount Float           @default(0.0)
+  incentiveStatus      String          @default("PENDING") // PENDING, SCROLL_GENERATED, DISBURSED
+
+  leoNumber            String?
+  leoDate              DateTime?
+  leoOfficer           String?
+  inspectionRemarks    String?
+
+  egmNumber            String?
+  egmDate              DateTime?
+  rotationNumber       String?
+  shippingLineCode     String?
+
+  containerNumbers     String[]        @default([])
+  sealNumbers          String[]        @default([])
+  isLocked             Boolean         @default(true)
+
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+
+  @@unique([companyId, sbNumber])
+  @@index([companyId])
+  @@index([shipmentId])
+}
+
+model ExportAmendment {
+  id           String   @id @default(cuid())
+  companyId    String
+  company      Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  shipmentId   String
+  shipment     Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  version      Int      @default(1)
+  previousData Json
+  newData      Json
+  reason       String
+  amendedBy    String
+  createdAt    DateTime @default(now())
+
+  @@index([companyId])
+  @@index([shipmentId])
+}
+
+// ===== Chunk 5: Physical Logistics Coordination Models =====
+
+enum LogisticsEventType {
+  PORT_ARRIVAL
+  EXAMINATION_SCHEDULED
+  EXAMINATION_COMPLETED
+  STUFFING_SCHEDULED
+  STUFFING_COMPLETED
+  LOADED_ON_VESSEL
+  LEO_ISSUED
+  OUT_OF_CHARGE_ISSUED
+}
+
+enum TransporterBookingStatus {
+  BOOKED
+  PICKED_UP
+  IN_TRANSIT
+  DELIVERED
+  CANCELLED
+}
+
+model LogisticsEvent {
+  id                     String             @id @default(cuid())
+  companyId              String
+  company                Company            @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  shipmentId             String?
+  shipment               Shipment?          @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  importShipmentId       String?
+  importShipment         ImportShipment?    @relation(fields: [importShipmentId], references: [id], onDelete: Cascade)
+  
+  eventType              LogisticsEventType
+  timestamp              DateTime           @default(now())
+  location               String             // e.g. "CFS Dronagiri, Nhava Sheva", "ICD Tughlakabad"
+  remarks                String?
+  attachments            String[]           @default([])
+  officerOrInspectorName String?
+  containerNumber        String?
+  sealNumber             String?
+
+  recordedBy             String             // userId
+  recorder               User               @relation("RecordedLogisticsEvents", fields: [recordedBy], references: [id])
+
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
+
+  @@index([companyId])
+  @@index([shipmentId])
+  @@index([importShipmentId])
+  @@index([eventType])
+}
+
+model TransporterBooking {
+  id                 String                   @id @default(cuid())
+  companyId          String
+  company            Company                  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  shipmentId         String?
+  shipment           Shipment?                @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  importShipmentId   String?
+  importShipment     ImportShipment?          @relation(fields: [importShipmentId], references: [id], onDelete: Cascade)
+
+  transporterName    String
+  contactNumber      String
+  contactPerson      String?
+  vehicleNumber      String
+  vehicleType        String?                  @default("40ft Multi-Axle Trailer")
+  driverName         String?
+  driverPhone        String?
+  driverLicense      String?
+
+  pickupLocation     String
+  deliveryLocation   String
+  scheduledTime      DateTime
+  actualPickupTime   DateTime?
+  actualDeliveryTime DateTime?
+
+  status             TransporterBookingStatus @default(BOOKED)
+  trackingRef        String?
+  ewayBillNumber     String?
+  notes              String?
+
+  bookedBy           String                   // userId
+  booker             User                     @relation("UserTransporterBookings", fields: [bookedBy], references: [id])
+
+  createdAt          DateTime                 @default(now())
+  updatedAt          DateTime                 @updatedAt
+
+  @@index([companyId])
+  @@index([shipmentId])
+  @@index([importShipmentId])
+  @@index([status])
+}
+
+// ===== Chunk 6: Financial Closure Loop Enums & Models =====
+
+enum ExportRealisationStatus {
+  PENDING
+  PARTIALLY_REALISED
+  FULLY_REALISED
+  OVERDUE
+}
+
+enum DutyPaymentStatus {
+  PENDING
+  VERIFIED
+  MISMATCH
+  REJECTED
+}
+
+enum DutyPaymentMode {
+  ICEGATE_E_PAYMENT
+  NEFT_RTGS
+  NET_BANKING
+  OTHER
+}
+
+enum IncentiveScheme {
+  RODTEP
+  DRAWBACK
+}
+
+enum IncentiveClaimStatus {
+  DRAFT
+  FILED
+  SANCTIONED
+  CREDITED
+  REJECTED
+}
+
+enum FinancialEntityType {
+  EXPORT_REALISATION
+  DUTY_PAYMENT
+  INCENTIVE_CLAIM
+}
+
+model ExportRealisation {
+  id                  String                  @id @default(cuid())
+  companyId           String
+  company             Company                 @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  shipmentId          String
+  shipment            Shipment                @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+
+  invoiceValue        Float
+  amountRealised      Float                   @default(0.0)
+  currency            String                  @default("USD")
+  realisationDate     DateTime?
+  bankReferenceNumber String?                 // e-BRC / IRM / FIRC number
+  brcDocumentUrl      String?                 // Signed/scoped storage URL
+
+  status              ExportRealisationStatus @default(PENDING)
+  overdueDate         DateTime                // RBI 9-month statutory deadline
+  isOverdue           Boolean                 @default(false)
+  remarks             String?
+
+  recordedBy          String                  // userId
+  recorder            User                    @relation("RecordedRealisations", fields: [recordedBy], references: [id])
+  confirmedBy         String?                 // userId (Admin / Owner confirmation)
+  confirmer           User?                   @relation("ConfirmedRealisations", fields: [confirmedBy], references: [id])
+  confirmedAt         DateTime?
+
+  createdAt           DateTime                @default(now())
+  updatedAt           DateTime                @updatedAt
+
+  @@index([companyId])
+  @@index([shipmentId])
+  @@index([companyId, status])
+  @@index([companyId, isOverdue])
+}
+
+model DutyPayment {
+  id                 String            @id @default(cuid())
+  companyId          String
+  company            Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  importShipmentId   String
+  importShipment     ImportShipment    @relation(fields: [importShipmentId], references: [id], onDelete: Cascade)
+  billOfEntryId      String
+  billOfEntry        BillOfEntry       @relation(fields: [billOfEntryId], references: [id], onDelete: Cascade)
+
+  challanNumber      String            // ICEGATE E-Challan number
+  amountPaid         Float
+  calculatedDuty     Float             // Calculated duty snapshot from BillOfEntry
+  paymentDate        DateTime          @default(now())
+  paymentReference   String?           // Bank Transaction ID / UTR number
+  paymentMode        DutyPaymentMode   @default(ICEGATE_E_PAYMENT)
+  receiptDocumentUrl String?           // Scoped signed receipt storage URL
+
+  status             DutyPaymentStatus @default(PENDING)
+  discrepancyReason  String?
+
+  recordedBy         String            // userId
+  recorder           User              @relation("RecordedDutyPayments", fields: [recordedBy], references: [id])
+  confirmedBy        String?           // userId (Admin / Owner confirmation)
+  confirmer          User?             @relation("ConfirmedDutyPayments", fields: [confirmedBy], references: [id])
+  confirmedAt        DateTime?
+
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  @@index([companyId])
+  @@index([importShipmentId])
+  @@index([billOfEntryId])
+  @@index([challanNumber])
+  @@index([companyId, status])
+}
+
+model IncentiveClaim {
+  id                String               @id @default(cuid())
+  companyId         String
+  company           Company              @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  shipmentId        String
+  shipment          Shipment             @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+
+  scheme            IncentiveScheme      // RODTEP / DRAWBACK
+  claimedAmount     Float
+  sanctionedAmount  Float?
+  status            IncentiveClaimStatus @default(DRAFT)
+
+  scrollNumber      String?
+  scrollDate        DateTime?
+  filingDate        DateTime?
+  sanctionDate      DateTime?
+  creditDate        DateTime?
+  bankAccountRef    String?
+  remarks           String?
+
+  recordedBy        String               // userId
+  recorder          User                 @relation("RecordedIncentiveClaims", fields: [recordedBy], references: [id])
+  sanctionedBy      String?              // userId (Admin / Owner confirmation)
+  sanctioner        User?                @relation("SanctionedIncentiveClaims", fields: [sanctionedBy], references: [id])
+
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+
+  @@index([companyId])
+  @@index([shipmentId])
+  @@index([companyId, scheme])
+  @@index([companyId, status])
+}
+
+model FinancialAuditLog {
+  id            String              @id @default(cuid())
+  companyId     String
+  company       Company             @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  entityType    FinancialEntityType
+  entityId      String
+  action        String              // CREATE, UPDATE, STATUS_CHANGE, CONFIRM, REJECT, SANCTION
+  previousValue Json?
+  newValue      Json
+  performedBy   String              // userId
+  performer     User                @relation("UserFinancialAudits", fields: [performedBy], references: [id])
+  reason        String?
+
+  createdAt     DateTime            @default(now())
+
+  @@index([companyId])
+  @@index([entityType, entityId])
+  @@index([companyId, createdAt])
 }

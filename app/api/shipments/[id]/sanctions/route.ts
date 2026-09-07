@@ -1,48 +1,70 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/app/lib/prisma";
-import { getOrgContext } from "@/lib/getOrgContext";
-import { checkSanctions } from "@/lib/sanctions";
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/app/lib/prisma';
+import { withErrorHandler } from '@/lib/api-handler';
+import { requireTenantContext } from '@/lib/tenant';
+import { assertPermission } from '@/lib/rbac/assert-permission';
+import { checkSanctions } from '@/lib/sanctions';
+import { NotFoundError, ExternalServiceError } from '@/lib/errors';
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
-  const ctx = await getOrgContext();
-  if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+export const POST = withErrorHandler(async (_req: NextRequest, { params }: { params: { id: string } }) => {
+  const ctx = await requireTenantContext();
+  assertPermission(ctx.role, 'sanctions:check');
 
   const shipment = await prisma.shipment.findFirst({
-    where: { id: params.id, userId: ctx.effectiveOwnerId },
+    where: { id: params.id, companyId: ctx.companyId },
   });
-  if (!shipment) return NextResponse.json({ error: "Shipment not found" }, { status: 404 });
+
+  if (!shipment) {
+    throw new NotFoundError('Shipment not found');
+  }
 
   try {
     const matches = await checkSanctions(shipment.buyerName);
+    const matchFound = matches.length > 0;
 
     const check = await prisma.sanctionsCheck.upsert({
       where: { shipmentId: shipment.id },
-      update: { matchFound: matches.length > 0, matches, checkedAt: new Date() },
+      update: { matchFound, matches, checkedAt: new Date() },
       create: {
+        companyId: ctx.companyId,
         shipmentId: shipment.id,
-        matchFound: matches.length > 0,
+        matchFound,
         matches,
       },
     });
 
-    return NextResponse.json(check);
-  } catch {
-    return NextResponse.json({ error: "Sanctions check failed" }, { status: 502 });
-  }
-}
+    await prisma.activity.create({
+      data: {
+        companyId: ctx.companyId,
+        userId: ctx.userId,
+        shipmentId: shipment.id,
+        action: 'SANCTIONS_CHECKED',
+        details: `Sanctions check for ${shipment.buyerName}: ${matchFound ? 'MATCH FOUND' : 'CLEAR'}`,
+      },
+    });
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
-  const ctx = await getOrgContext();
-  if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json(check);
+  } catch (err) {
+    console.error('Sanctions screening service failed:', err);
+    throw new ExternalServiceError('Sanctions screening provider failed. Please retry.');
+  }
+});
+
+export const GET = withErrorHandler(async (_req: NextRequest, { params }: { params: { id: string } }) => {
+  const ctx = await requireTenantContext();
+  assertPermission(ctx.role, 'sanctions:read');
 
   const shipment = await prisma.shipment.findFirst({
-    where: { id: params.id, userId: ctx.effectiveOwnerId },
+    where: { id: params.id, companyId: ctx.companyId },
   });
-  if (!shipment) return NextResponse.json({ error: "Shipment not found" }, { status: 404 });
 
-  const check = await prisma.sanctionsCheck.findUnique({
-    where: { shipmentId: params.id },
+  if (!shipment) {
+    throw new NotFoundError('Shipment not found');
+  }
+
+  const check = await prisma.sanctionsCheck.findFirst({
+    where: { shipmentId: params.id, companyId: ctx.companyId },
   });
 
   return NextResponse.json(check);
-}
+});

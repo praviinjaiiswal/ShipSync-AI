@@ -1,13 +1,15 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/app/lib/prisma";
-import { getOrgContext } from "@/lib/getOrgContext";
+import { NextResponse } from 'next/server';
+import { prisma } from '@/app/lib/prisma';
+import { withErrorHandler } from '@/lib/api-handler';
+import { requireTenantContext } from '@/lib/tenant';
+import { assertPermission } from '@/lib/rbac/assert-permission';
 
-export async function GET() {
-  const ctx = await getOrgContext();
-  if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+export const GET = withErrorHandler(async () => {
+  const ctx = await requireTenantContext();
+  assertPermission(ctx.role, 'compliance:read');
 
   const shipments = await prisma.shipment.findMany({
-    where: { userId: ctx.effectiveOwnerId },
+    where: { companyId: ctx.companyId },
     select: {
       id: true,
       buyerName: true,
@@ -16,8 +18,8 @@ export async function GET() {
       sanctionsCheck: { select: { matchFound: true } },
       riskReport: { select: { countryRiskScore: true, buyerRiskScore: true } },
     },
-    orderBy: { createdAt: "desc" },
+    orderBy: { createdAt: 'desc' },
   });
 
   return NextResponse.json(shipments);
-}
+});

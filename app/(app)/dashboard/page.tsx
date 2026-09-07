@@ -1,5 +1,6 @@
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 import { IncentiveSummaryCard } from "@/components/dashboard/IncentiveSummaryCard";
+import { OverdueRealisationBanner } from "@/components/dashboard/OverdueRealisationBanner";
 
 export default function DashboardPage() {
   return (
@@ -8,6 +9,8 @@ export default function DashboardPage() {
         <h1 className="text-2xl font-heading font-bold text-foreground">Dashboard</h1>
         <p className="text-sm text-muted-foreground mt-1">Welcome back — recent team activity yahan dikhegi.</p>
       </div>
+
+      <OverdueRealisationBanner />
 
       <IncentiveSummaryCard />
 

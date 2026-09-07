@@ -1,21 +1,27 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/app/lib/prisma";
-import { getOrgContext } from "@/lib/getOrgContext";
-import { licenseSchema } from "@/lib/validations";
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/app/lib/prisma';
+import { withErrorHandler } from '@/lib/api-handler';
+import { requireTenantContext } from '@/lib/tenant';
+import { assertPermission } from '@/lib/rbac/assert-permission';
+import { licenseSchema } from '@/lib/validations';
+import { ValidationError, NotFoundError } from '@/lib/errors';
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
-  const ctx = await getOrgContext();
-  if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+export const PATCH = withErrorHandler(async (req: NextRequest, { params }: { params: { id: string } }) => {
+  const ctx = await requireTenantContext();
+  assertPermission(ctx.role, 'license:update');
 
   const existing = await prisma.license.findFirst({
-    where: { id: params.id, userId: ctx.effectiveOwnerId },
+    where: { id: params.id, companyId: ctx.companyId },
   });
-  if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  if (!existing) {
+    throw new NotFoundError('License not found');
+  }
 
   const body = await req.json();
   const parsed = licenseSchema.partial().safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+    throw new ValidationError('Validation failed for license update', parsed.error.flatten());
   }
 
   const license = await prisma.license.update({
@@ -28,18 +34,21 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   });
 
   return NextResponse.json(license);
-}
+});
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
-  const ctx = await getOrgContext();
-  if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+export const DELETE = withErrorHandler(async (_req: NextRequest, { params }: { params: { id: string } }) => {
+  const ctx = await requireTenantContext();
+  assertPermission(ctx.role, 'license:delete');
 
   const existing = await prisma.license.findFirst({
-    where: { id: params.id, userId: ctx.effectiveOwnerId },
+    where: { id: params.id, companyId: ctx.companyId },
   });
-  if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  if (!existing) {
+    throw new NotFoundError('License not found');
+  }
 
   await prisma.license.delete({ where: { id: params.id } });
 
-  return NextResponse.json({ success: true });
-}
+  return NextResponse.json({ success: true, message: 'License deleted successfully' });
+});
