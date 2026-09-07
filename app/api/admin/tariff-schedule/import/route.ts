@@ -3,6 +3,8 @@ import { prisma } from '@/app/lib/prisma';
 import { withErrorHandler } from '@/lib/api-handler';
 import { requireTenantContext } from '@/lib/tenant';
 import { assertPermission } from '@/lib/rbac/assert-permission';
+import { rateLimiter, RATE_LIMIT_PRESETS } from '@/lib/rate-limit';
+import { invalidateByPrefix } from '@/lib/cache';
 import { ValidationError } from '@/lib/errors';
 import { z } from 'zod';
 
@@ -61,6 +63,9 @@ function parseCsv(csvText: string): Record<string, string>[] {
 export const POST = withErrorHandler(async (req: NextRequest) => {
   const ctx = await requireTenantContext();
   assertPermission(ctx.role, 'tariff_schedule:import');
+
+  // Strict rate limit for bulk admin imports
+  await rateLimiter.check(req, `tariff-import:${ctx.userId}`, RATE_LIMIT_PRESETS.UPLOAD);
 
   const contentType = req.headers.get('content-type') || '';
   let rawRows: any[] = [];
@@ -153,6 +158,10 @@ export const POST = withErrorHandler(async (req: NextRequest) => {
       details: `Imported ${importedCount} statutory tariff schedule items into ground-truth database.`,
     },
   });
+
+  // Invalidate any cached tariff schedule lookups
+  invalidateByPrefix('global:tariff');
+  invalidateByPrefix('company:');
 
   return NextResponse.json({
     success: true,

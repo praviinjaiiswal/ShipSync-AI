@@ -4,7 +4,7 @@ import { withErrorHandler } from '@/lib/api-handler';
 import { requireTenantContext } from '@/lib/tenant';
 import { assertPermission } from '@/lib/rbac/assert-permission';
 import { rateLimiter, RATE_LIMIT_PRESETS } from '@/lib/rate-limit';
-import { NotFoundError } from '@/lib/errors';
+import { NotFoundError, ConflictError } from '@/lib/errors';
 import { extractDocumentData } from '@/lib/documents/extraction-engine';
 
 export const POST = withErrorHandler(
@@ -19,6 +19,10 @@ export const POST = withErrorHandler(
 
     if (!document) {
       throw new NotFoundError('Document not found');
+    }
+
+    if (document.finalizedAt) {
+      throw new ConflictError('Document is finalized and cannot be re-extracted. Create a new version instead.');
     }
 
     // Optional override text passed in body (e.g. from client-side PDF.js worker)

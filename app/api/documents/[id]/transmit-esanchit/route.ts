@@ -5,6 +5,7 @@ import { requireTenantContext } from '@/lib/tenant';
 import { assertPermission } from '@/lib/rbac/assert-permission';
 import { ValidationError, NotFoundError } from '@/lib/errors';
 import { getCustomsAdapter } from '@/lib/customs/adapter-factory';
+import { runComplianceRules } from '@/lib/compliance/rule-engine';
 
 export const POST = withErrorHandler(
   async (_req: NextRequest, { params }: { params: { id: string } }) => {
@@ -27,6 +28,25 @@ export const POST = withErrorHandler(
       throw new ValidationError(`Document must be VERIFIED or ESANCHIT_READY before transmitting. Current: ${document.status}`);
     }
 
+    // Statutory Compliance Gate: Parent export shipment must pass statutory compliance rules before customs transmission
+    if (document.shipmentId) {
+      const shipment = await prisma.shipment.findUnique({
+        where: { id: document.shipmentId },
+      });
+      const company = await prisma.company.findUnique({
+        where: { id: ctx.companyId },
+      });
+      if (shipment && company) {
+        const complianceResult = await runComplianceRules(shipment, company);
+        if (!complianceResult.passed) {
+          const failures = complianceResult.failedRules.map((r) => r.message).join('; ');
+          throw new ValidationError(
+            `Cannot transmit document for filing: Parent export shipment fails statutory compliance rules: ${failures}`
+          );
+        }
+      }
+    }
+
     const adapter = await getCustomsAdapter(ctx.companyId, 'ESANCHIT');
 
     const uploadResponse = await adapter.uploadSupportingDocument({
@@ -45,6 +65,7 @@ export const POST = withErrorHandler(
       data: {
         irnNumber: uploadResponse.irnNumber,
         status: 'ESANCHIT_UPLOADED',
+        finalizedAt: new Date(),
       },
     });
 

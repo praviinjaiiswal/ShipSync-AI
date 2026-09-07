@@ -5,7 +5,7 @@ import { requireTenantContext } from '@/lib/tenant';
 import { assertPermission } from '@/lib/rbac/assert-permission';
 import { rateLimiter, RATE_LIMIT_PRESETS } from '@/lib/rate-limit';
 import { findHSCode } from '@/lib/ai';
-import { getCached, setCached, createTenantKey, hashKey, CACHE_TTL } from '@/lib/cache';
+import { getCached, setCached, createTenantKey, globalCacheKey, hashKey, CACHE_TTL } from '@/lib/cache';
 import { ValidationError, ExternalServiceError } from '@/lib/errors';
 
 export const POST = withErrorHandler(async (req: NextRequest) => {
@@ -39,10 +39,17 @@ export const POST = withErrorHandler(async (req: NextRequest) => {
 
   const suggestedCode = (aiResult?.hsCode || '').trim().replace(/\./g, '');
 
-  // Cross-reference against official TariffSchedule ground-truth table
-  const tariffMatch = await prisma.tariffSchedule.findUnique({
-    where: { hsCode: suggestedCode },
-  });
+  // Cross-reference against official TariffSchedule ground-truth table with cache
+  const tariffCacheKey = globalCacheKey('tariff-entry', suggestedCode);
+  let tariffMatch = getCached<any>(tariffCacheKey);
+  if (!tariffMatch) {
+    tariffMatch = await prisma.tariffSchedule.findUnique({
+      where: { hsCode: suggestedCode },
+    });
+    if (tariffMatch) {
+      setCached(tariffCacheKey, tariffMatch, 4 * 60 * 60 * 1000); // 4-hour reasonable TTL
+    }
+  }
 
   let responsePayload: any;
 

@@ -1,4 +1,5 @@
 import { prisma } from '@/app/lib/prisma';
+import { getCached, setCached, globalCacheKey } from '@/lib/cache';
 import type { Shipment, Company } from '@prisma/client';
 
 export interface RuleResult {
@@ -65,16 +66,24 @@ export async function runComplianceRules(
   // 2. RULE_HS_TARIFF_GROUNDED: Grounded in TariffSchedule
   // -------------------------------------------------------------
   const cleanHs = shipment.hsCode?.trim().replace(/\./g, '') || '';
-  const tariffEntry = cleanHs.length >= 6
-    ? await prisma.tariffSchedule.findFirst({
+  let tariffEntry: any = null;
+  if (cleanHs.length >= 6) {
+    const tariffCacheKey = globalCacheKey('tariff-grounding', cleanHs);
+    tariffEntry = getCached(tariffCacheKey);
+    if (!tariffEntry) {
+      tariffEntry = await prisma.tariffSchedule.findFirst({
         where: {
           OR: [
             { hsCode: cleanHs },
             { hsCode: { startsWith: cleanHs.slice(0, 6) } },
           ],
         },
-      })
-    : null;
+      });
+      if (tariffEntry) {
+        setCached(tariffCacheKey, tariffEntry, 4 * 60 * 60 * 1000); // 4-hour reasonable TTL
+      }
+    }
+  }
 
   if (tariffEntry) {
     allRules.push({
@@ -167,8 +176,12 @@ export async function runComplianceRules(
     where: { shipmentId: shipment.id },
   });
 
-  const hasInvoice = documents.some((d) => d.docType === 'COMMERCIAL_INVOICE');
-  const hasPackingList = documents.some((d) => d.docType === 'PACKING_LIST');
+  const hasInvoice = documents.some(
+    (d) => d.docType === 'COMMERCIAL_INVOICE' && (Boolean(d.fileUrl) || Boolean(d.finalizedAt))
+  );
+  const hasPackingList = documents.some(
+    (d) => d.docType === 'PACKING_LIST' && (Boolean(d.fileUrl) || Boolean(d.finalizedAt))
+  );
 
   if (hasInvoice && hasPackingList) {
     allRules.push({

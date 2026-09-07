@@ -5,18 +5,25 @@ const openai = new OpenAI({
 })
 
 export async function generateDocument(docType: string, shipmentData: any) {
-  const prompt = `Generate a ${docType} for an Indian export shipment with these details: ${JSON.stringify(shipmentData)}. Format as per Indian DGFT standards. Return structured data.`
+  const prompt = `Generate realistic structured data for an Indian trade document of type "${docType}".
+Shipment details: ${JSON.stringify(shipmentData)}.
+Return valid JSON adhering strictly to statutory DGFT and Indian Customs requirements. Include document numbers, dates, line items, and statutory declarations.`;
 
-  const response = await openai.chat.completions.create({
-    model: 'gpt-4o-mini',
-    messages: [
-      { role: 'system', content: 'You are an expert Indian export documentation specialist.' },
-      { role: 'user', content: prompt }
-    ],
-    response_format: { type: 'json_object' },
-  })
+  try {
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: 'You are an Indian customs and international trade documentation specialist. Output structured JSON only.' },
+        { role: 'user', content: prompt }
+      ],
+      response_format: { type: 'json_object' },
+    });
 
-  return JSON.parse(response.choices[0].message.content || '{}')
+    return JSON.parse(response.choices[0].message.content || '{}');
+  } catch (err) {
+    console.warn('OpenAI document content drafting unavailable, using deterministic baseline:', err);
+    return {};
+  }
 }
 
 export async function checkCompliance(shipmentData: any) {

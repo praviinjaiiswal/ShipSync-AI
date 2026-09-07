@@ -16,7 +16,9 @@
     "test:chunk6": "npx tsx scripts/test-chunk6.ts",
     "test:chunk7": "npx tsx scripts/test-chunk7.ts",
     "test:gapfix-chunk3": "npx tsx scripts/test-gapfix-chunk3.ts",
-    "test": "npx tsx scripts/test-chunk0.ts && npx tsx scripts/test-chunk1.ts && npx tsx scripts/test-chunk2.ts && npx tsx scripts/test-chunk3.ts && npx tsx scripts/test-chunk4.ts && npx tsx scripts/test-chunk5.ts && npx tsx scripts/test-chunk6.ts && npx tsx scripts/test-chunk7.ts && npx tsx scripts/test-gapfix-chunk3.ts",
+    "test:gapfix-chunk4": "npx tsx scripts/test-gapfix-chunk4.ts",
+    "test:final-audit": "npx tsx scripts/test-final-cha-audit.ts",
+    "test": "npx tsx scripts/test-chunk0.ts && npx tsx scripts/test-chunk1.ts && npx tsx scripts/test-chunk2.ts && npx tsx scripts/test-chunk3.ts && npx tsx scripts/test-chunk4.ts && npx tsx scripts/test-chunk5.ts && npx tsx scripts/test-chunk6.ts && npx tsx scripts/test-chunk7.ts && npx tsx scripts/test-gapfix-chunk3.ts && npx tsx scripts/test-gapfix-chunk4.ts && npx tsx scripts/test-final-cha-audit.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {

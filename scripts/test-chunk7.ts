@@ -482,13 +482,15 @@ async function runTests() {
     console.log('\n⚡ 6. Testing Performance, Pagination Caps & Tenant Caching');
 
     // 6.1 Bounded pagination check
-    // Create 15 items in Alpha
+    // Create 15 items in Alpha with versioning (only newest isLatest)
     const docData = Array.from({ length: 15 }, (_, i) => ({
       companyId: tenantAlpha,
       shipmentId: shipmentAlpha.id,
       docType: 'OTHER' as const,
       fileName: `test_doc_${i + 1}.pdf`,
       status: 'PENDING' as const,
+      version: i + 1,
+      isLatest: i === 14,
     }));
     await prisma.document.createMany({ data: docData });
 
