@@ -49,6 +49,8 @@ export type Permission =
   | 'duty-rate:read'
   | 'duty_rate:import'
   | 'duty_rate:read'
+  | 'tariff_schedule:import'
+  | 'tariff_schedule:read'
   // AI features
   | 'ai:use'
   // Activity / Analytics
@@ -150,6 +152,8 @@ const PERMISSION_MATRIX: Record<Permission, UserRole[]> = {
   'duty-rate:read':    ['OWNER', 'ADMIN', 'OPS_EXECUTIVE', 'COMPLIANCE_OFFICER', 'VIEWER'],
   'duty_rate:import':  ['OWNER', 'ADMIN'],
   'duty_rate:read':    ['OWNER', 'ADMIN', 'OPS_EXECUTIVE', 'COMPLIANCE_OFFICER', 'VIEWER'],
+  'tariff_schedule:import': ['OWNER', 'ADMIN'],
+  'tariff_schedule:read':   ['OWNER', 'ADMIN', 'OPS_EXECUTIVE', 'COMPLIANCE_OFFICER', 'VIEWER'],
 
   // AI features
   'ai:use':            ['OWNER', 'ADMIN', 'OPS_EXECUTIVE', 'COMPLIANCE_OFFICER'],

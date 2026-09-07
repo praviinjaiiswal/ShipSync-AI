@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Sparkles } from "lucide-react";
+import { Sparkles, CheckCircle2, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Loader } from "@/components/ui/loader";
 
@@ -10,6 +10,10 @@ type HSCodeResult = {
   description: string;
   chapterHeading: string;
   applicableDuties: string;
+  verified?: boolean;
+  source?: string;
+  updatedAt?: string;
+  warning?: string;
 };
 
 export function HSCodeFinder({
@@ -73,18 +77,47 @@ export function HSCodeFinder({
       {error && <p className="text-xs text-destructive">HS code fetch nahi ho paaya, dobara try karo.</p>}
 
       {result && (
-        <div className="border border-border rounded-md p-3 bg-muted/40 space-y-1.5">
+        <div className="border border-border rounded-md p-3 bg-muted/40 space-y-2">
           <div className="flex items-center justify-between">
-            <span className="font-mono text-sm font-semibold text-foreground">{result.hsCode}</span>
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-sm font-semibold text-foreground">{result.hsCode}</span>
+              {result.verified ? (
+                <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30">
+                  <CheckCircle2 className="w-3 h-3" />
+                  Tariff Verified
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30">
+                  <AlertTriangle className="w-3 h-3" />
+                  Unverified Suggestion
+                </span>
+              )}
+            </div>
             <Button type="button" size="sm" onClick={() => onSelect(result.hsCode)}>
               Use this code
             </Button>
           </div>
+
+          {result.warning && (
+            <div className="p-2 rounded bg-amber-500/10 border border-amber-500/20 text-xs text-amber-700 dark:text-amber-400">
+              {result.warning}
+            </div>
+          )}
+
           <p className="text-xs text-muted-foreground">{result.description}</p>
-          <p className="text-xs text-muted-foreground">Chapter: {result.chapterHeading}</p>
-          <p className="text-xs text-muted-foreground">Duties: {result.applicableDuties}</p>
+          <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+            {result.chapterHeading && <span>Chapter: {result.chapterHeading}</span>}
+            {result.applicableDuties && <span>Duties: {result.applicableDuties}</span>}
+          </div>
+
+          {result.source && (
+            <p className="text-[10px] text-muted-foreground/80 border-t border-border/50 pt-1 mt-1">
+              Source: {result.source}
+              {result.updatedAt && ` · Updated ${new Date(result.updatedAt).toLocaleDateString()}`}
+            </p>
+          )}
         </div>
       )}
     </div>
   );
-}
+}

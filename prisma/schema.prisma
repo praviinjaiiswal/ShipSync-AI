@@ -44,7 +44,9 @@ model Company {
   dutyPayments        DutyPayment[]
   incentiveClaims     IncentiveClaim[]
   financialAuditLogs  FinancialAuditLog[]
+  unverifiedHsCodeSuggestions UnverifiedHsCodeSuggestion[]
 }
+
 
 // ===== ShipSync Core (App Users) =====
 
@@ -958,4 +960,61 @@ model FinancialAuditLog {
   @@index([companyId])
   @@index([entityType, entityId])
   @@index([companyId, createdAt])
+}
+
+// ===== Statutory Tariff Schedule (Ground Truth for HS Codes) =====
+
+model TariffSchedule {
+  id             String    @id @default(cuid())
+  hsCode         String    @unique
+  description    String
+  unit           String?
+  chapterHeading String?
+  notes          String?
+  source         String    @default("CBIC Notification No. 02/2026-Customs")
+  effectiveFrom  DateTime  @default(now())
+  effectiveTo    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([hsCode])
+}
+
+model UnverifiedHsCodeSuggestion {
+  id                 String   @id @default(cuid())
+  companyId          String?
+  company            Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  productDescription String
+  suggestedCode      String
+  createdAt          DateTime @default(now())
+
+  @@index([companyId])
+  @@index([suggestedCode])
+}
+
+// ===== Statutory Sanctions & Denied Entities (DGFT & SCOMET) =====
+
+enum DeniedEntityType {
+  INDIVIDUAL
+  COMPANY
+}
+
+enum DeniedEntitySource {
+  DGFT_DENIED_ENTITY
+  SCOMET_RESTRICTED
+}
+
+model DeniedEntity {
+  id              String             @id @default(cuid())
+  entityName      String
+  entityType      DeniedEntityType   @default(COMPANY)
+  sourceList      DeniedEntitySource @default(DGFT_DENIED_ENTITY)
+  referenceNumber String?
+  addedDate       DateTime           @default(now())
+  notes           String?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  @@index([entityName])
+  @@index([sourceList])
 }

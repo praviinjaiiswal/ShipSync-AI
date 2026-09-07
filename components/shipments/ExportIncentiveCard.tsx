@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { IndianRupee, TrendingUp, AlertCircle, CheckCircle2, ShieldCheck, RefreshCw } from "lucide-react";
+import { IndianRupee, TrendingUp, AlertCircle, CheckCircle2, ShieldCheck, RefreshCw, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface ExportIncentiveCardProps {
@@ -39,6 +39,8 @@ export function ExportIncentiveCard({
     exportDutyAmount: number;
     totalIncentiveAmount: number;
     sourceNotification: string;
+    lastUpdatedDate?: string;
+    isOlderThan90Days?: boolean;
   } | null>(null);
 
   const [loading, setLoading] = useState(false);
@@ -168,12 +170,23 @@ export function ExportIncentiveCard({
             </div>
           </div>
 
-          <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-1 border-t border-border">
-            <div className="flex items-center gap-1.5">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-              <span>{data?.sourceNotification || "Statutory Foreign Trade Policy (FTP 2023)"}</span>
+          <div className="pt-2 border-t border-border space-y-1.5">
+            <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+              <div className="flex items-center gap-1.5">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+                <span>
+                  Source: {data?.sourceNotification || "Statutory Foreign Trade Policy (FTP 2023)"}
+                  {data?.lastUpdatedDate ? `, updated ${data.lastUpdatedDate}` : ''}
+                </span>
+              </div>
+              <span>FOB Base: {currency} {fobValue.toLocaleString()}</span>
             </div>
-            <span>FOB Base: {currency} {fobValue.toLocaleString()}</span>
+            {data?.isOlderThan90Days && (
+              <div className="flex items-center gap-1.5 text-[11px] text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 p-1.5 rounded-md border border-amber-200 dark:border-amber-900/50">
+                <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                <span>Verify with CHA — reference data may need update</span>
+              </div>
+            )}
           </div>
         </>
       )}

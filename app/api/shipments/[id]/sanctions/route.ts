@@ -19,19 +19,23 @@ export const POST = withErrorHandler(async (_req: NextRequest, { params }: { par
   }
 
   try {
-    const matches = await checkSanctions(shipment.buyerName);
-    const matchFound = matches.length > 0;
+    const report = await checkSanctions(shipment.buyerName);
+    const matchFound = report.matchFound;
 
     const check = await prisma.sanctionsCheck.upsert({
       where: { shipmentId: shipment.id },
-      update: { matchFound, matches, checkedAt: new Date() },
+      update: { matchFound, matches: report as any },
       create: {
         companyId: ctx.companyId,
         shipmentId: shipment.id,
         matchFound,
-        matches,
+        matches: report as any,
       },
     });
+
+    const matchDetails = matchFound
+      ? `MATCH FOUND [DGFT: ${report.dgftListMatch ? 'YES' : 'NO'}, SCOMET: ${report.scometListMatch ? 'YES' : 'NO'}, US CSL: ${report.usListMatch ? 'YES' : 'NO'}]`
+      : 'CLEAR (All regimes)';
 
     await prisma.activity.create({
       data: {
@@ -39,11 +43,14 @@ export const POST = withErrorHandler(async (_req: NextRequest, { params }: { par
         userId: ctx.userId,
         shipmentId: shipment.id,
         action: 'SANCTIONS_CHECKED',
-        details: `Sanctions check for ${shipment.buyerName}: ${matchFound ? 'MATCH FOUND' : 'CLEAR'}`,
+        details: `Sanctions check for ${shipment.buyerName}: ${matchDetails}`,
       },
     });
 
-    return NextResponse.json(check);
+    return NextResponse.json({
+      ...check,
+      screeningReport: report,
+    });
   } catch (err) {
     console.error('Sanctions screening service failed:', err);
     throw new ExternalServiceError('Sanctions screening provider failed. Please retry.');

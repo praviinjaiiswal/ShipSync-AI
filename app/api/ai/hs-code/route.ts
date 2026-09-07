@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/app/lib/prisma';
 import { withErrorHandler } from '@/lib/api-handler';
 import { requireTenantContext } from '@/lib/tenant';
 import { assertPermission } from '@/lib/rbac/assert-permission';
@@ -28,12 +29,63 @@ export const POST = withErrorHandler(async (req: NextRequest) => {
     return NextResponse.json(cached);
   }
 
+  let aiResult: any;
   try {
-    const result = await findHSCode(productDescription);
-    setCached(cacheKey, result, CACHE_TTL.HS_CODE);
-    return NextResponse.json(result);
+    aiResult = await findHSCode(productDescription);
   } catch (err) {
     console.error('AI HS code lookup failed:', err);
     throw new ExternalServiceError('AI HS code identification service is unavailable. Please retry.');
   }
+
+  const suggestedCode = (aiResult?.hsCode || '').trim().replace(/\./g, '');
+
+  // Cross-reference against official TariffSchedule ground-truth table
+  const tariffMatch = await prisma.tariffSchedule.findUnique({
+    where: { hsCode: suggestedCode },
+  });
+
+  let responsePayload: any;
+
+  if (tariffMatch) {
+    // Grounded in official tariff database: Use DB description as statutory source of truth
+    responsePayload = {
+      verified: true,
+      hsCode: tariffMatch.hsCode,
+      description: tariffMatch.description,
+      chapterHeading: tariffMatch.chapterHeading || aiResult.chapterHeading,
+      unit: tariffMatch.unit || null,
+      source: tariffMatch.source,
+      updatedAt: tariffMatch.updatedAt,
+      applicableDuties: aiResult.applicableDuties || 'Per statutory schedule',
+    };
+  } else {
+    // Unverified code: Do not discard, but flag prominently and log for admin review
+    responsePayload = {
+      verified: false,
+      hsCode: suggestedCode,
+      description: aiResult.description || 'AI suggested classification',
+      chapterHeading: aiResult.chapterHeading || suggestedCode.slice(0, 4),
+      unit: null,
+      source: 'AI Predictive Model (Unverified)',
+      updatedAt: new Date().toISOString(),
+      applicableDuties: aiResult.applicableDuties || 'Unverified',
+      warning: 'This code could not be validated against the tariff database — please confirm manually before use.',
+    };
+
+    // Log unverified suggestion asynchronously for tariff schedule expansion
+    try {
+      await prisma.unverifiedHsCodeSuggestion.create({
+        data: {
+          companyId: ctx.companyId,
+          productDescription,
+          suggestedCode,
+        },
+      });
+    } catch (logErr) {
+      console.error('Failed to log unverified HS code suggestion:', logErr);
+    }
+  }
+
+  setCached(cacheKey, responsePayload, CACHE_TTL.HS_CODE);
+  return NextResponse.json(responsePayload);
 });

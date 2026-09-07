@@ -4,6 +4,7 @@ import { withErrorHandler } from '@/lib/api-handler';
 import { requireTenantContext } from '@/lib/tenant';
 import { assertPermission } from '@/lib/rbac/assert-permission';
 import { isValidExportStatusTransition } from '@/lib/validations';
+import { runComplianceRules } from '@/lib/compliance/rule-engine';
 import { ValidationError, NotFoundError } from '@/lib/errors';
 import { z } from 'zod';
 
@@ -47,6 +48,25 @@ export const PATCH = withErrorHandler(async (req: NextRequest, { params }: { par
       `Invalid export lifecycle transition: Cannot transition shipment from '${shipment.status}' to '${nextStatus}'. Follow statutory sequence: DRAFT → DOCUMENTS_READY → UNDER_REVIEW → SHIPPING_BILL_GENERATED → CUSTOMS_CLEARED → GATE_IN → SHIPPED → DELIVERED.`
     );
   }
+
+  // Statutory Compliance Hard Gate: Status cannot reach CLEARED unless all hard compliance rules pass
+  if (nextStatus === 'CLEARED' || nextStatus === 'CUSTOMS_CLEARED') {
+    const company = await prisma.company.findUnique({
+      where: { id: ctx.companyId },
+    });
+    if (company) {
+      const complianceResult = await runComplianceRules(shipment, company);
+      if (!complianceResult.passed) {
+        const reasons = complianceResult.failedRules
+          .map((r) => `• ${r.description}: ${r.message}`)
+          .join('\n');
+        throw new ValidationError(
+          `Statutory Compliance Gate Blocked: Shipment cannot be marked '${nextStatus}' because statutory rules failed:\n${reasons}`
+        );
+      }
+    }
+  }
+
 
   const updatedShipment = await prisma.shipment.update({
     where: { id: shipment.id },

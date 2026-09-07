@@ -30,6 +30,8 @@ export interface DutyCalculationBreakdown {
   cessAmount: number;
   totalDutyPayable: number;
   sourceNotificationRef: string;
+  lastUpdatedDate?: string;
+  isOlderThan90Days?: boolean;
   isCached?: boolean;
 }
 
@@ -75,6 +77,12 @@ export async function calculateCustomsDuty(
 
   const totalDutyPayable = Math.round((bcdAmount + swsAmount + igstAmount + cessAmount) * 100) / 100;
 
+  const updatedAt = rateRecord.updatedAt || rateRecord.createdAt || new Date();
+  const ninetyDaysAgo = new Date();
+  ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+  const isOlderThan90Days = updatedAt < ninetyDaysAgo;
+  const lastUpdatedDate = updatedAt.toISOString().split('T')[0];
+
   const result: DutyCalculationBreakdown = {
     hsCode,
     cifValue: roundedCif,
@@ -90,6 +98,8 @@ export async function calculateCustomsDuty(
     cessAmount,
     totalDutyPayable,
     sourceNotificationRef: rateRecord.sourceNotificationRef || 'Customs Notification No. 50/2017-Customs',
+    lastUpdatedDate,
+    isOlderThan90Days,
     isCached: false,
   };
 

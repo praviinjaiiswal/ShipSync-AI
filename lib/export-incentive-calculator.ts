@@ -16,6 +16,8 @@ export interface ExportIncentiveBreakdown {
   exportDutyAmount: number;
   totalIncentiveAmount: number;
   sourceNotification: string;
+  lastUpdatedDate?: string;
+  isOlderThan90Days?: boolean;
 }
 
 /**
@@ -82,6 +84,12 @@ export async function calculateExportIncentives(
     Math.round((rodtepAmount + drawbackAmount - exportDutyAmount) * 100) / 100
   );
 
+  const updatedAt = rateRecord?.updatedAt || new Date();
+  const ninetyDaysAgo = new Date();
+  ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+  const isOlderThan90Days = updatedAt < ninetyDaysAgo;
+  const lastUpdatedDate = updatedAt.toISOString().split('T')[0];
+
   const breakdown: ExportIncentiveBreakdown = {
     hsCode: normalizedHs,
     fobValue,
@@ -97,6 +105,8 @@ export async function calculateExportIncentives(
     exportDutyAmount,
     totalIncentiveAmount,
     sourceNotification: rateRecord?.source || 'DGFT Notification No. 19/2015-2020 (RoDTEP Schedule)',
+    lastUpdatedDate,
+    isOlderThan90Days,
   };
 
   // Cache for 5 minutes

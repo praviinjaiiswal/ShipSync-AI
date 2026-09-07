@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Calculator, RefreshCw, Sparkles, ShieldAlert, CheckCircle2 } from 'lucide-react';
+import { Calculator, RefreshCw, Sparkles, ShieldAlert, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/toast';
 import type { DutyCalculationBreakdown } from '@/lib/duty-calculator';
@@ -152,13 +152,24 @@ export function DutyCalculatorCard({
             </div>
           </div>
 
-          {/* Reference Notice */}
-          <div className="flex items-center justify-between text-[11px] text-slate-400 pt-2 border-t border-slate-100 dark:border-slate-800">
-            <span className="truncate pr-2">Ref: {breakdown.sourceNotificationRef}</span>
-            {breakdown.isCached && (
-              <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 shrink-0 font-medium">
-                <CheckCircle2 className="h-3 w-3" /> Cached
+          {/* Reference Notice & Data Freshness */}
+          <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-1.5">
+            <div className="flex items-center justify-between text-[11px] text-slate-400">
+              <span className="truncate pr-2">
+                Source: {breakdown.sourceNotificationRef}
+                {breakdown.lastUpdatedDate ? `, updated ${breakdown.lastUpdatedDate}` : ''}
               </span>
+              {breakdown.isCached && (
+                <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 shrink-0 font-medium">
+                  <CheckCircle2 className="h-3 w-3" /> Cached
+                </span>
+              )}
+            </div>
+            {breakdown.isOlderThan90Days && (
+              <div className="flex items-center gap-1.5 text-[11px] text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 p-1.5 rounded-md border border-amber-200 dark:border-amber-900/50">
+                <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                <span>Verify with CHA — reference data may need update</span>
+              </div>
             )}
           </div>
         </div>
