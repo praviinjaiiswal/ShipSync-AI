@@ -5,15 +5,17 @@ import { Navbar } from "@/app/sections/Navbar";
 import { Footer } from "@/app/sections/Footer";
 import { prisma } from "@/app/lib/prisma";
 import { TradeUpdateCategory } from "@prisma/client";
+import { getCached, setCached, globalCacheKey, CACHE_TTL } from "@/lib/cache";
+import { TradeBriefingItem } from "@/app/components/TradeBriefingItem";
 import {
   ExternalLink,
   ShieldCheck,
-  Globe,
-  Clock,
   ChevronLeft,
   ChevronRight,
-  Filter,
-  BellRing,
+  Bot,
+  Sparkles,
+  Send,
+  MessageSquareQuote,
 } from "lucide-react";
 
 export const metadata: Metadata = {
@@ -54,6 +56,33 @@ const CATEGORY_LABELS: Record<string, string> = {
   OTHER: "Trade Policy",
 };
 
+function formatChatTime(dateStr: string | Date | null | undefined): string {
+  if (!dateStr) return "";
+  const d = new Date(dateStr);
+  const now = new Date();
+  const diffHours = (now.getTime() - d.getTime()) / (1000 * 60 * 60);
+
+  if (diffHours < 24 && d.getDate() === now.getDate()) {
+    return `Today, ${d.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit", hour12: true })}`;
+  }
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  if (d.getDate() === yesterday.getDate() && d.getMonth() === yesterday.getMonth()) {
+    return `Yesterday, ${d.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit", hour12: true })}`;
+  }
+  return d.toLocaleDateString("en-IN", { month: "short", day: "numeric" });
+}
+
+function getRecencyGroup(dateStr: string | Date | null | undefined): "Today" | "This Week" | "Earlier" {
+  if (!dateStr) return "Earlier";
+  const d = new Date(dateStr);
+  const now = new Date();
+  const diffDays = (now.getTime() - d.getTime()) / (1000 * 60 * 60 * 24);
+  if (diffDays < 1 && d.getDate() === now.getDate()) return "Today";
+  if (diffDays <= 7) return "This Week";
+  return "Earlier";
+}
+
 interface PageProps {
   searchParams?: {
     category?: string;
@@ -78,147 +107,172 @@ export default async function TradeUpdatesPage({ searchParams }: PageProps) {
     where.category = currentCategory as TradeUpdateCategory;
   }
 
-  const [totalCount, updates] = await Promise.all([
-    prisma.tradeUpdate.count({ where }),
-    prisma.tradeUpdate.findMany({
-      where,
-      orderBy: { publishedAt: "desc" },
-      skip,
-      take: pageSize,
-    }),
-  ]);
+  const cacheKey = globalCacheKey(`trade:feed:${currentCategory}:${currentPage}`);
+  let cachedData = getCached<{ totalCount: number; updates: any[] }>(cacheKey);
+
+  let totalCount = 0;
+  let updates: any[] = [];
+
+  if (cachedData) {
+    totalCount = cachedData.totalCount;
+    updates = cachedData.updates;
+  } else {
+    const [countResult, updatesResult] = await Promise.all([
+      prisma.tradeUpdate.count({ where }),
+      prisma.tradeUpdate.findMany({
+        where,
+        orderBy: { publishedAt: "desc" },
+        skip,
+        take: pageSize,
+      }),
+    ]);
+    totalCount = countResult;
+    updates = updatesResult;
+    setCached(cacheKey, { totalCount, updates }, CACHE_TTL.DUTY_CALC);
+  }
 
   const totalPages = Math.ceil(totalCount / pageSize);
+
+  const grouped = updates.reduce((acc: Record<string, any[]>, item) => {
+    const group = getRecencyGroup(item.publishedAt || item.createdAt);
+    if (!acc[group]) acc[group] = [];
+    acc[group].push(item);
+    return acc;
+  }, {});
+  const recencyOrder: Array<"Today" | "This Week" | "Earlier"> = ["Today", "This Week", "Earlier"];
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950">
       <Navbar />
 
       <main className="flex-1 pt-28 pb-20">
-        <div className="max-w-6xl mx-auto px-6 space-y-10">
-          {/* Header Banner */}
+        <div className="max-w-4xl mx-auto px-6 space-y-10">
+          {/* Header Banner with Sync AI Persona */}
           <div className="space-y-4 max-w-3xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-editorial-light border border-ocean-muted/20 text-ocean-deep text-xs font-semibold uppercase tracking-wider">
-              <BellRing className="w-3.5 h-3.5 text-ocean-deep" />
-              Statutory Bulletin Feed
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white dark:bg-slate-900 border border-ocean-muted/20 text-ocean-deep text-xs font-semibold uppercase tracking-wider shadow-2xs">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              <Bot className="w-3.5 h-3.5 text-ocean-deep" />
+              Sync AI • Conversational Trade Intelligence
             </div>
             <h1 className="font-heading text-4xl sm:text-5xl font-bold text-navy-deep dark:text-white leading-tight">
-              Trade Intelligence & Regulatory Bulletins
+              Regulatory Briefings & Trade Policy
             </h1>
             <p className="text-base sm:text-lg text-ocean-muted leading-relaxed">
-              Curated, plain-language summaries of DGFT notifications, customs circulars, and FTA updates for Indian exporters and importers. Every bulletin links directly to the official government gazette.
+              Real-time intelligence from DGFT, CBIC customs circulars, and bilateral trade desks. Summarized by Sync AI with direct attribution to the official government gazette.
             </p>
           </div>
 
-          {/* Category Filter Chips */}
-          <div className="flex flex-wrap items-center gap-2 pt-2 border-b border-border/60 pb-6">
-            <div className="flex items-center gap-1.5 text-xs text-slate-500 font-semibold mr-2">
-              <Filter className="w-3.5 h-3.5" />
-              Filter:
+          {/* Conversational Static Ask Bar */}
+          <div className="relative p-2.5 rounded-2xl bg-white dark:bg-slate-900 border border-border shadow-2xs flex items-center gap-3">
+            <div className="pl-3 text-ocean-deep dark:text-ocean-light">
+              <Sparkles className="w-5 h-5 text-emerald-500 animate-pulse" />
             </div>
-            {CATEGORIES.map((cat) => {
-              const isActive = currentCategory === cat.value;
-              const href =
-                cat.value === "ALL"
-                  ? "/trade-updates"
-                  : `/trade-updates?category=${cat.value}`;
-
-              return (
-                <Link
-                  key={cat.value}
-                  href={href}
-                  className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
-                    isActive
-                      ? "bg-navy-deep text-white shadow-sm"
-                      : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-border/70 hover:border-slate-400"
-                  }`}
-                >
-                  {cat.label}
-                </Link>
-              );
-            })}
+            <input
+              type="text"
+              readOnly
+              placeholder="Ask Sync AI: 'What is the latest RoDTEP rate for textiles?' or 'Any DGFT updates on Basmati rice?'"
+              className="flex-1 bg-transparent text-sm text-slate-700 dark:text-slate-200 placeholder-slate-400 outline-none cursor-default py-1.5"
+            />
+            <div className="flex items-center gap-2 pr-1">
+              <span className="hidden sm:inline-block text-[11px] font-medium text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-md">
+                Static Preview
+              </span>
+              <button
+                type="button"
+                disabled
+                className="p-2.5 rounded-xl bg-navy-deep text-white opacity-80 cursor-not-allowed transition-opacity"
+                title="Conversational search is in preview"
+              >
+                <Send className="w-4 h-4" />
+              </button>
+            </div>
           </div>
 
-          {/* Feed Content */}
+          {/* Quick-reply Suggestion Chips */}
+          <div className="space-y-2.5 pt-1">
+            <div className="flex items-center gap-1.5 text-xs text-slate-500 font-semibold">
+              <MessageSquareQuote className="w-3.5 h-3.5 text-ocean-deep" />
+              <span>Suggested topics:</span>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              {CATEGORIES.map((cat) => {
+                const isActive = currentCategory === cat.value;
+                const href =
+                  cat.value === "ALL"
+                    ? "/trade-updates"
+                    : `/trade-updates?category=${cat.value}`;
+
+                return (
+                  <Link
+                    key={cat.value}
+                    href={href}
+                    className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                      isActive
+                        ? "bg-navy-deep text-white shadow-xs"
+                        : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-border/80 hover:border-ocean-deep/40"
+                    }`}
+                  >
+                    {cat.label}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Feed Content: Conversational Chat Bubbles Grouped by Recency */}
           {updates.length === 0 ? (
-            <div className="p-16 text-center rounded-3xl bg-white dark:bg-slate-900 border border-border/80 space-y-3">
-              <ShieldCheck className="w-12 h-12 mx-auto text-slate-400" />
-              <h3 className="text-lg font-bold text-navy-deep dark:text-white">
-                No bulletins published yet in this category
-              </h3>
-              <p className="text-sm text-ocean-muted max-w-md mx-auto">
-                Our automated monitor scans daily. Check back shortly or view{" "}
-                <Link href="/trade-updates" className="text-ocean-deep font-semibold underline">
-                  all categories
-                </Link>
-                .
-              </p>
+            <div className="flex items-start gap-4 p-8 rounded-2xl bg-white dark:bg-slate-900 border border-border/80 shadow-2xs">
+              <div className="w-10 h-10 rounded-2xl bg-navy-deep text-white flex items-center justify-center shrink-0 ring-4 ring-slate-100 dark:ring-slate-800">
+                <Bot className="w-5 h-5 text-emerald-400" />
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-sm text-navy-deep dark:text-white">Sync AI</span>
+                  <span className="text-[11px] text-slate-400">Just now</span>
+                </div>
+                <p className="text-sm text-ocean-muted leading-relaxed">
+                  I haven't detected any published statutory bulletins in this category yet. Our automated monitor scans government portals continuously. You can check back shortly or browse{" "}
+                  <Link href="/trade-updates" className="text-ocean-deep font-semibold underline">
+                    all categories
+                  </Link>
+                  .
+                </p>
+              </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {updates.map((item) => (
-                <article
-                  key={item.id}
-                  className="flex flex-col justify-between p-6 sm:p-7 rounded-3xl bg-white dark:bg-slate-900 border border-border/80 hover:border-ocean-deep/40 hover:shadow-lg transition-all space-y-4"
-                >
-                  <div className="space-y-3.5">
-                    {/* Top Row: Category + Country + Date */}
-                    <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
-                      <span className="px-2.5 py-1 rounded-md font-semibold text-[11px] bg-editorial-light text-ocean-deep border border-ocean-muted/20">
-                        {CATEGORY_LABELS[item.category] || item.category}
-                      </span>
+            <div className="space-y-9">
+              {recencyOrder.map((groupKey) => {
+                const items = grouped[groupKey];
+                if (!items || items.length === 0) return null;
 
-                      <div className="flex items-center gap-2 text-slate-400 text-xs font-medium">
-                        {item.country && (
-                          <span className="inline-flex items-center gap-1 text-slate-600 dark:text-slate-400 font-medium">
-                            <Globe className="w-3 h-3" />
-                            {item.country}
-                          </span>
-                        )}
-                        <span className="inline-flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
-                          {item.publishedAt
-                            ? new Date(item.publishedAt).toLocaleDateString("en-IN", {
-                                month: "short",
-                                day: "numeric",
-                                year: "numeric",
-                              })
-                            : ""}
-                        </span>
-                      </div>
+                return (
+                  <div key={groupKey} className="space-y-4">
+                    {/* Recency Date Badge Divider */}
+                    <div className="flex items-center gap-3">
+                      <div className="h-px bg-border/70 flex-1" />
+                      <span className="px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-editorial-light dark:bg-slate-800 text-ocean-deep border border-ocean-muted/20">
+                        {groupKey}
+                      </span>
+                      <div className="h-px bg-border/70 flex-1" />
                     </div>
 
-                    {/* Headline */}
-                    <h2 className="font-heading font-bold text-lg text-navy-deep dark:text-white leading-snug">
-                      {item.title}
-                    </h2>
-
-                    {/* Summary */}
-                    <p className="text-ocean-muted text-sm leading-relaxed">
-                      {item.summary}
-                    </p>
+                    {/* Conversational Briefing Items */}
+                    <div className="space-y-4">
+                      {items.map((item) => (
+                        <TradeBriefingItem
+                          key={item.id}
+                          item={item}
+                          categoryLabel={CATEGORY_LABELS[item.category] || item.category}
+                          formattedTime={formatChatTime(item.publishedAt || item.createdAt)}
+                        />
+                      ))}
+                    </div>
                   </div>
-
-                  {/* Card Bottom: Source Link */}
-                  <div className="pt-4 border-t border-border/50 flex items-center justify-between text-xs">
-                    <span className="text-slate-500 font-medium flex items-center gap-1">
-                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                      Verified via {item.sourceName}
-                    </span>
-
-                    <a
-                      href={item.sourceUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-ocean-deep dark:text-ocean-light hover:underline font-semibold inline-flex items-center gap-1 transition-colors"
-                      title="Read official notification"
-                    >
-                      <span>Official Notice</span>
-                      <ExternalLink className="w-3 h-3" />
-                    </a>
-                  </div>
-                </article>
-              ))}
+                );
+              })}
             </div>
           )}
 
