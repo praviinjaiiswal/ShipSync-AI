@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { Brain, FileText, Coins, Route, Search, BarChart3 } from "lucide-react";
 import { AnimatedSection, StaggerContainer, StaggerItem } from "../components/AnimatedSection";
 
@@ -44,28 +43,6 @@ const features = [
 ];
 
 export function Features() {
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  if (!isMounted) {
-    return (
-      <section className="py-32 bg-editorial-light">
-        <div className="max-w-7xl mx-auto px-6 animate-pulse">
-          <div className="h-12 w-1/2 bg-muted/20 mb-16"></div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="h-64 bg-muted/10 rounded-2xl md:col-span-2"></div>
-            <div className="h-64 bg-muted/10 rounded-2xl"></div>
-            <div className="h-64 bg-muted/10 rounded-2xl"></div>
-            <div className="h-64 bg-muted/10 rounded-2xl md:col-span-2"></div>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
   return (
     <section id="features" className="py-32 relative bg-editorial-light">
       <div className="max-w-7xl mx-auto px-6">

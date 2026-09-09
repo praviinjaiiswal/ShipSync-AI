@@ -1,29 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 
 export function Hero() {
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  if (!isMounted) {
-    return (
-      <section className="relative min-h-screen flex flex-col items-center justify-center pt-16">
-        <div className="w-full max-w-5xl mx-auto px-6 flex flex-col items-center text-center animate-pulse">
-          <div className="h-8 w-48 bg-muted/30 rounded-full mb-8"></div>
-          <div className="h-24 w-[80%] bg-muted/30 rounded-lg mb-6"></div>
-          <div className="h-16 w-[60%] bg-muted/30 rounded-lg mb-10"></div>
-          <div className="h-14 w-96 bg-muted/30 rounded-full"></div>
-        </div>
-      </section>
-    );
-  }
 
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden pt-16">

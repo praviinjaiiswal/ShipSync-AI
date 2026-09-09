@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { Upload, Brain, TrendingUp, FileCheck } from "lucide-react";
 import { AnimatedSection, StaggerContainer, StaggerItem } from "../components/AnimatedSection";
 
@@ -32,27 +31,6 @@ const steps = [
 ];
 
 export function Solution() {
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  if (!isMounted) {
-    return (
-      <section className="py-32 bg-white">
-        <div className="max-w-7xl mx-auto px-6 animate-pulse">
-          <div className="h-10 w-1/2 bg-muted/20 mb-16 mx-auto"></div>
-          <div className="grid md:grid-cols-4 gap-8">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-48 w-full bg-muted/10 rounded-2xl"></div>
-            ))}
-          </div>
-        </div>
-      </section>
-    );
-  }
-
   return (
     <section id="how-it-works" className="py-32 relative bg-white border-t border-border/50">
       <div className="max-w-7xl mx-auto px-6">

@@ -1025,3 +1025,52 @@ model DeniedEntity {
   @@index([entityName])
   @@index([sourceList])
 }
+
+// ===== Global Trade Intelligence Feed =====
+
+enum TradeUpdateCategory {
+  TARIFF
+  DGFT_NOTIFICATION
+  FTA
+  LOGISTICS
+  SANCTIONS
+  OTHER
+}
+
+enum TradeUpdateStatus {
+  PENDING_REVIEW
+  PUBLISHED
+  REJECTED
+}
+
+enum DraftSource {
+  AI
+  ADMIN
+}
+
+model TradeUpdate {
+  id               String              @id @default(cuid())
+  title            String
+  summary          String              // 2-4 sentences, plain language
+  category         TradeUpdateCategory
+  country          String?             // nullable — e.g. "China", "UAE", null for India-wide updates
+  sourceName       String              // e.g. "DGFT", "CBIC", "Ministry of Commerce"
+  sourceUrl        String              // link to the official notification/page — never omit this
+  status           TradeUpdateStatus   @default(PENDING_REVIEW)
+  draftedBy        DraftSource         @default(AI)
+  reviewedByUserId String?             // nullable, set on approve/reject
+  reviewNotes      String?             // nullable — why rejected, or edits made
+  publishedAt      DateTime?           // nullable, set only when status becomes PUBLISHED
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+
+  @@index([status])
+  @@index([publishedAt])
+  @@index([category])
+}
+
+model TradeUpdateSourceSeen {
+  id          String   @id @default(cuid())
+  sourceUrl   String   @unique
+  firstSeenAt DateTime @default(now())
+}

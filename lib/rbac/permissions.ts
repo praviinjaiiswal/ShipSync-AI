@@ -99,7 +99,10 @@ export type Permission =
   | 'incentive_claim:file'
   | 'incentive_claim:sanction'
   | 'incentive_claim:read'
-  | 'financial_audit:read';
+  | 'financial_audit:read'
+  // Trade Intelligence Feed
+  | 'tradeupdate:review'
+  | 'tradeupdate:publish';
 
 /**
  * Permission matrix: action → allowed roles.
@@ -209,6 +212,10 @@ const PERMISSION_MATRIX: Record<Permission, UserRole[]> = {
   'incentive_claim:sanction':   ['OWNER', 'ADMIN'],
   'incentive_claim:read':       ['OWNER', 'ADMIN', 'OPS_EXECUTIVE', 'COMPLIANCE_OFFICER', 'VIEWER'],
   'financial_audit:read':       ['OWNER', 'ADMIN', 'OPS_EXECUTIVE', 'COMPLIANCE_OFFICER', 'VIEWER'],
+
+  // Trade Intelligence Feed (ADMIN / OWNER only)
+  'tradeupdate:review':         ['OWNER', 'ADMIN'],
+  'tradeupdate:publish':        ['OWNER', 'ADMIN'],
 };
 
 /**

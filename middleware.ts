@@ -12,6 +12,8 @@ const isProtectedRoute = createRouteMatcher([
 
 const isPublicApiRoute = createRouteMatcher([
   '/api/team/accept(.*)',
+  '/api/cron/(.*)',
+  '/api/waitlist(.*)',
 ]);
 
 export default clerkMiddleware(async (auth, req) => {

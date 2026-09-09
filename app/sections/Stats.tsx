@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { AnimatedSection } from "../components/AnimatedSection";
 import { CountUp } from "../components/CountUp";
 
@@ -12,26 +11,6 @@ const stats = [
 ];
 
 export function Stats() {
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  if (!isMounted) {
-    return (
-      <section className="py-24 bg-editorial-light">
-        <div className="max-w-7xl mx-auto px-6 animate-pulse">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-24 w-full bg-muted/10 rounded-lg"></div>
-            ))}
-          </div>
-        </div>
-      </section>
-    );
-  }
-
   return (
     <section className="py-28 relative bg-editorial-light border-y border-border/50">
       <div className="relative max-w-7xl mx-auto px-6">

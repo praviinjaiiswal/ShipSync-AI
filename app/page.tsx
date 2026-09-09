@@ -3,6 +3,7 @@ import { Hero } from "@/app/sections/Hero";
 import { Problem } from "@/app/sections/Problem";
 import { Solution } from "@/app/sections/Solution";
 import { Features } from "@/app/sections/Features";
+import { TradeIntelligence } from "@/app/sections/TradeIntelligence";
 import { Stats } from "@/app/sections/Stats";
 import { Waitlist } from "@/app/sections/Waitlist";
 import { FAQ } from "@/app/sections/FAQ";
@@ -16,6 +17,7 @@ export default function Home() {
       <Problem />
       <Solution />
       <Features />
+      <TradeIntelligence />
       <Stats />
       <Waitlist />
       <FAQ />

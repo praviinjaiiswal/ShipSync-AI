@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { AnimatedSection } from "../components/AnimatedSection";
 import {
   Accordion,
@@ -53,27 +52,6 @@ const faqs = [
 ];
 
 export function FAQ() {
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  if (!isMounted) {
-    return (
-      <section className="py-24 bg-white">
-        <div className="max-w-3xl mx-auto px-6 animate-pulse">
-          <div className="h-10 w-48 mx-auto bg-muted/20 mb-12"></div>
-          <div className="space-y-4">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="h-16 w-full bg-muted/10 rounded-xl"></div>
-            ))}
-          </div>
-        </div>
-      </section>
-    );
-  }
-
   return (
     <section id="faq" className="py-32 relative bg-white">
       <div className="max-w-3xl mx-auto px-6">

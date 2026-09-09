@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { AlertTriangle, FileX, Wallet } from "lucide-react";
 import { AnimatedSection, StaggerContainer, StaggerItem } from "../components/AnimatedSection";
 
@@ -32,27 +31,6 @@ const problems = [
 ];
 
 export function Problem() {
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  if (!isMounted) {
-    return (
-      <section className="py-24 bg-white">
-        <div className="max-w-5xl mx-auto px-6 animate-pulse">
-          <div className="h-10 w-3/4 bg-muted/20 mb-16"></div>
-          <div className="space-y-12">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="h-32 w-full bg-muted/10 rounded-xl"></div>
-            ))}
-          </div>
-        </div>
-      </section>
-    );
-  }
-
   return (
     <section className="py-32 relative bg-white border-t border-border/50">
       <div className="max-w-5xl mx-auto px-6">
