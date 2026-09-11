@@ -21,37 +21,44 @@ export const POST = withErrorHandler(async (req: NextRequest, { params }: { para
     throw new NotFoundError('Shipment not found');
   }
 
-  try {
-    const result = await assessRisk(shipment);
-    const { countryRiskScore = 0, buyerRiskScore = 0, aiReport = '' } = result;
+  const result = await assessRisk(shipment);
 
-    const riskReport = await prisma.riskReport.upsert({
-      where: { shipmentId: shipment.id },
-      update: { countryRiskScore, buyerRiskScore, aiReport },
-      create: {
-        companyId: ctx.companyId,
-        shipmentId: shipment.id,
-        countryRiskScore,
-        buyerRiskScore,
-        aiReport,
-      },
+  if (!result.success) {
+    return NextResponse.json({
+      success: false,
+      reason: result.reason,
+      message: result.error || 'AI risk assessment temporarily unavailable, please verify buyer risk manually.',
+      countryRiskScore: 0,
+      buyerRiskScore: 0,
+      aiReport: result.aiReport,
     });
-
-    await prisma.activity.create({
-      data: {
-        companyId: ctx.companyId,
-        userId: ctx.userId,
-        shipmentId: shipment.id,
-        action: 'RISK_ASSESSED',
-        details: `Assessed risk for ${shipment.buyerName} (Country Score: ${countryRiskScore}, Buyer Score: ${buyerRiskScore})`,
-      },
-    });
-
-    return NextResponse.json(riskReport);
-  } catch (err) {
-    console.error('Risk assessment AI failure:', err);
-    throw new ExternalServiceError('AI risk assessment service failed. Please retry.');
   }
+
+  const { countryRiskScore = 0, buyerRiskScore = 0, aiReport = '' } = result;
+
+  const riskReport = await prisma.riskReport.upsert({
+    where: { shipmentId: shipment.id },
+    update: { countryRiskScore, buyerRiskScore, aiReport },
+    create: {
+      companyId: ctx.companyId,
+      shipmentId: shipment.id,
+      countryRiskScore,
+      buyerRiskScore,
+      aiReport,
+    },
+  });
+
+  await prisma.activity.create({
+    data: {
+      companyId: ctx.companyId,
+      userId: ctx.userId,
+      shipmentId: shipment.id,
+      action: 'RISK_ASSESSED',
+      details: `Assessed risk for ${shipment.buyerName} (Country Score: ${countryRiskScore}, Buyer Score: ${buyerRiskScore})`,
+    },
+  });
+
+  return NextResponse.json(riskReport);
 });
 
 export const GET = withErrorHandler(async (_req: NextRequest, { params }: { params: { id: string } }) => {

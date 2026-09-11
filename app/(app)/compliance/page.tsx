@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ShieldAlert, ShieldCheck } from "lucide-react";
 import { StatusBadge } from "@/components/shipments/StatusBadge";
+import { StatutoryDisclaimer } from "@/components/ui/statutory-disclaimer";
 
 type ShipmentOverview = {
   id: string;
@@ -109,6 +110,8 @@ export default function ComplianceOverviewPage() {
           </table>
         </div>
       )}
+
+      <StatutoryDisclaimer className="mt-4" />
     </div>
   );
 }

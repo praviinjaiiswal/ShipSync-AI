@@ -440,7 +440,7 @@ The system flags mismatches in:
 │                      THIRD-PARTY INTEGRATIONS                               │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐      │
 │  │ ICEGATE  │  │ DGFT     │  │ Payment  │  │ Email/   │  │ Cloud    │      │
-│  │ 2.0 API  │  │ Portal   │  │ Gateway  │  │ WhatsApp │  │ Storage  │      │
+│  │ Adapter  │  │ Portal   │  │ Gateway  │  │ WhatsApp │  │ Storage  │      │
 │  └──────────┘  └──────────┘  └──────────┘  └──────────┘  └──────────┘      │
 └─────────────────────────────────────────────────────────────────────────────┘
 `}
@@ -457,8 +457,8 @@ The system flags mismatches in:
               <p className="text-sm text-slate-600">PostgreSQL handles structured relational data (users, subscriptions, transactions) with ACID compliance. MongoDB stores unstructured documents (AI outputs, DGFT notifications, export records) with flexible schema evolution.</p>
             </div>
             <div className="rounded-xl bg-slate-50 border border-slate-200 p-5">
-              <h4 className="font-semibold text-slate-900 mb-2">Why Fine-tuned LLM vs. API?</h4>
-              <p className="text-sm text-slate-600">Generic LLMs (GPT-4, Claude) don't know India's 8-digit tariff lines or DGFT-specific classifications. A fine-tuned model on 50K+ validated records gives 94%+ accuracy vs. 60% from generic models. Also: data stays in India, no third-party training.</p>
+              <h4 className="font-semibold text-slate-900 mb-2">Why Domain-Grounded AI vs Generic API?</h4>
+              <p className="text-sm text-slate-600">Generic LLMs lack awareness of India's granular 8-digit ITC-HS tariff schedules and DGFT policies. Grounded prompts and verified tariff catalogs provide AI-assisted suggestions tailored to Indian trade. All outputs are advisory and must be verified before filing.</p>
             </div>
           </div>
         </div>

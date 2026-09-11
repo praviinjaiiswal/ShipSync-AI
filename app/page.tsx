@@ -1,27 +1,26 @@
-import { Navbar } from "@/app/sections/Navbar";
-import { Hero } from "@/app/sections/Hero";
-import { Problem } from "@/app/sections/Problem";
-import { Solution } from "@/app/sections/Solution";
-import { Features } from "@/app/sections/Features";
-import { TradeIntelligence } from "@/app/sections/TradeIntelligence";
-import { Stats } from "@/app/sections/Stats";
-import { Waitlist } from "@/app/sections/Waitlist";
-import { FAQ } from "@/app/sections/FAQ";
-import { Footer } from "@/app/sections/Footer";
+import type { Metadata } from "next";
+import { HomePageClient } from "@/app/components/live-feed/HomePageClient";
+
+export const metadata: Metadata = {
+  title: "Live Regulatory Gazette & Trade Feed | ShipSync AI",
+  description:
+    "Live news channel monitoring DGFT circulars, RoDTEP extensions, and SCOMET trade intelligence for Indian exporters and importers.",
+  openGraph: {
+    title: "Live Regulatory Gazette & Trade Feed | ShipSync AI",
+    description:
+      "Live news channel monitoring DGFT notifications, trade circulars, and tariff revisions.",
+    url: "https://shipsync.ai",
+    siteName: "ShipSync AI",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Live Regulatory Gazette & Trade Feed | ShipSync AI",
+    description:
+      "Real-time Indian trade and customs intelligence feed.",
+  },
+};
 
 export default function Home() {
-  return (
-    <main className="relative overflow-hidden">
-      <Navbar />
-      <Hero />
-      <Problem />
-      <Solution />
-      <Features />
-      <TradeIntelligence />
-      <Stats />
-      <Waitlist />
-      <FAQ />
-      <Footer />
-    </main>
-  );
+  return <HomePageClient />;
 }

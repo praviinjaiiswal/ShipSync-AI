@@ -4,6 +4,7 @@ import { useState } from "react";
 import { AlertOctagon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Loader } from "@/components/ui/loader";
+import { StatutoryDisclaimer } from "@/components/ui/statutory-disclaimer";
 
 type RiskResult = {
   countryRiskScore: number;
@@ -28,21 +29,24 @@ function RiskBar({ label, score }: { label: string; score: number }) {
 
 export function RiskReport({ shipmentId }: { shipmentId: string }) {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<RiskResult | null>(null);
 
   const handleAssess = async () => {
     setLoading(true);
-    setError(false);
+    setError(null);
     setResult(null);
 
     try {
       const res = await fetch(`/api/shipments/${shipmentId}/risk`, { method: "POST" });
-      if (!res.ok) throw new Error("failed");
       const data = await res.json();
+      if (!res.ok || data.success === false) {
+        setError(data?.message || "AI risk assessment temporarily unavailable, please verify buyer risk manually.");
+        return;
+      }
       setResult(data);
     } catch {
-      setError(true);
+      setError("AI risk assessment temporarily unavailable, please verify buyer risk manually.");
     } finally {
       setLoading(false);
     }
@@ -58,17 +62,22 @@ export function RiskReport({ shipmentId }: { shipmentId: string }) {
       {loading && (
         <div className="flex items-center gap-2 text-sm text-muted-foreground py-1">
           <Loader />
-          Risk analyze ho raha hai...
+          Analyzing trade and country risks...
         </div>
       )}
 
-      {error && <p className="text-xs text-destructive">Risk assessment fail ho gaya.</p>}
+      {error && (
+        <div className="p-2.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-xs text-amber-800 dark:text-amber-300">
+          {error}
+        </div>
+      )}
 
       {result && (
         <div className="space-y-3 pt-1">
           <RiskBar label="Country Risk" score={result.countryRiskScore} />
           <RiskBar label="Buyer Risk" score={result.buyerRiskScore} />
           <p className="text-xs text-muted-foreground pt-1">{result.aiReport}</p>
+          <StatutoryDisclaimer />
         </div>
       )}
     </div>

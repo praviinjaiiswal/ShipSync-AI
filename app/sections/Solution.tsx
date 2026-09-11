@@ -26,7 +26,7 @@ const steps = [
     number: "04",
     icon: FileCheck,
     title: "Generate",
-    description: "Auto-create ICEGATE-ready shipping bills, invoices, and packing lists.",
+    description: "Auto-create schema-valid shipping bills, invoices, and packing lists with adapter support.",
   },
 ];
 

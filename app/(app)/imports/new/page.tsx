@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useToast } from '@/components/ui/toast';
 import { PolicyNoticeBanner } from '@/components/imports/PolicyNoticeBanner';
+import { StatutoryDisclaimer } from '@/components/ui/statutory-disclaimer';
 
 const MAJOR_INDIAN_PORTS = [
   { code: 'INNSA1', name: 'Nhava Sheva (JNPT), Maharashtra' },
@@ -361,7 +362,7 @@ export default function NewImportPage() {
             <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
               <Calculator className="h-4 w-4 text-blue-600 dark:text-blue-400" />
               <h3 className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider">
-                Live CBIC Duty Estimation
+                Statutory Duty Estimation (Advisory)
               </h3>
             </div>
 
@@ -413,6 +414,8 @@ export default function NewImportPage() {
             }
             requiredLicenseType={hsCode === '84713010' ? 'DGFT_IMPORT_AUTHORIZATION' : null}
           />
+
+          <StatutoryDisclaimer />
         </div>
       </div>
     </div>

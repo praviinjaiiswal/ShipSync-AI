@@ -7,13 +7,13 @@ const features = [
   {
     icon: Brain,
     title: "AI HS Code Classifier",
-    description: "94%+ accuracy using validated Indian export data. Suggests the exact 8-digit code with confidence score.",
+    description: "AI-assisted suggestions grounded in official tariff schedules. Always verify classifications before filing.",
     color: "emerald",
   },
   {
     icon: FileText,
     title: "Auto Document Generator",
-    description: "Commercial invoices, packing lists, shipping bills — all formatted for ICEGATE submission.",
+    description: "Commercial invoices, packing lists, shipping bills — generated using ICEGATE-ready schemas with adapter verification.",
     color: "blue",
   },
   {

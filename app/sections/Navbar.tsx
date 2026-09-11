@@ -7,9 +7,10 @@ import { Menu, X, Ship } from "lucide-react";
 import { SignedIn, SignedOut } from "@clerk/nextjs";
 
 const navLinks = [
+  { href: "/", label: "Live Feed" },
+  { href: "/about", label: "About" },
   { href: "/features", label: "Product" },
-  { href: "/research", label: "Research" },
-  { href: "#faq", label: "FAQ" },
+  { href: "/pricing", label: "Pricing" },
   { href: "/contact", label: "Contact" },
 ];
 

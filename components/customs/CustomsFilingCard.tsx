@@ -128,7 +128,7 @@ export function CustomsFilingCard({
           </div>
           <div>
             <h3 className="font-semibold text-white text-base">Customs Gateway Integration</h3>
-            <p className="text-xs text-slate-400">Direct ICEGATE 2.0 & e-Sanchit Electronic Transmission</p>
+            <p className="text-xs text-slate-400">Adapter-Based ICEGATE 2.0 & e-Sanchit Transmission (Mock/Testing Mode)</p>
           </div>
         </div>
 

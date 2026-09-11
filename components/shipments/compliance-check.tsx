@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ShieldCheck, AlertTriangle, CheckCircle2, XCircle, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Loader } from "@/components/ui/loader";
+import { StatutoryDisclaimer } from "@/components/ui/statutory-disclaimer";
 
 type RuleResult = {
   rule: string;
@@ -32,21 +33,24 @@ type ComplianceResult = {
 
 export function ComplianceCheck({ shipmentId }: { shipmentId: string }) {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ComplianceResult | null>(null);
 
   const handleCheck = async () => {
     setLoading(true);
-    setError(false);
+    setError(null);
     setResult(null);
 
     try {
       const res = await fetch(`/api/shipments/${shipmentId}/compliance`, { method: "POST" });
-      if (!res.ok) throw new Error("failed");
       const data = await res.json();
+      if (!res.ok) {
+        setError(data?.error?.message || "Compliance check temporarily unavailable, please retry.");
+        return;
+      }
       setResult(data);
     } catch {
-      setError(true);
+      setError("Compliance check service is temporarily unavailable. Please retry.");
     } finally {
       setLoading(false);
     }
@@ -75,7 +79,11 @@ export function ComplianceCheck({ shipmentId }: { shipmentId: string }) {
         </div>
       )}
 
-      {error && <p className="text-sm text-destructive">Compliance check fail ho gaya, dobara try karo.</p>}
+      {error && (
+        <div className="p-2.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-xs text-amber-800 dark:text-amber-300">
+          {error}
+        </div>
+      )}
 
       {result && (
         <div className="space-y-4">
@@ -168,9 +176,7 @@ export function ComplianceCheck({ shipmentId }: { shipmentId: string }) {
               </div>
             )}
 
-            <p className="text-[10px] text-muted-foreground/70 italic border-t border-border/40 pt-2 mt-2">
-              Note: AI recommendations are consultative and do not override statutory Customs Tariff Acts, Foreign Trade Policy, or CBIC mandates.
-            </p>
+            <StatutoryDisclaimer />
           </div>
         </div>
       )}

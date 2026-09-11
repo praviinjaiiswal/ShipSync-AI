@@ -14,6 +14,8 @@ const isPublicApiRoute = createRouteMatcher([
   '/api/team/accept(.*)',
   '/api/cron/(.*)',
   '/api/waitlist(.*)',
+  '/api/contact(.*)',
+  '/api/trade-updates(.*)',
 ]);
 
 export default clerkMiddleware(async (auth, req) => {

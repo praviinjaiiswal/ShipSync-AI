@@ -75,7 +75,7 @@ export function Hero() {
           <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-ocean-deep font-medium text-sm">
             <span>21,000+ Tariff Lines</span>
             <span className="hidden sm:inline text-border">·</span>
-            <span>ICEGATE 2.0 Ready</span>
+            <span>ICEGATE Adapter Ready</span>
             <span className="hidden sm:inline text-border">·</span>
             <span>DGFT Compliant</span>
             <span className="hidden sm:inline text-border">·</span>

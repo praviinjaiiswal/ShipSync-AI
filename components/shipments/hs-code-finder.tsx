@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Sparkles, CheckCircle2, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Loader } from "@/components/ui/loader";
+import { StatutoryDisclaimer } from "@/components/ui/statutory-disclaimer";
 
 type HSCodeResult = {
   hsCode: string;
@@ -24,14 +25,14 @@ export function HSCodeFinder({
   onSelect: (hsCode: string) => void;
 }) {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<HSCodeResult | null>(null);
 
   const canSearch = productDescription.trim().length >= 10;
 
   const handleFind = async () => {
     setLoading(true);
-    setError(false);
+    setError(null);
     setResult(null);
 
     try {
@@ -40,11 +41,14 @@ export function HSCodeFinder({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ productDescription }),
       });
-      if (!res.ok) throw new Error("failed");
       const data = await res.json();
+      if (!res.ok || data.success === false) {
+        setError(data?.message || "AI suggestion temporarily unavailable, please try manual entry.");
+        return;
+      }
       setResult(data);
     } catch {
-      setError(true);
+      setError("AI suggestion temporarily unavailable, please try manual entry.");
     } finally {
       setLoading(false);
     }
@@ -64,17 +68,21 @@ export function HSCodeFinder({
       </Button>
 
       {!canSearch && (
-        <p className="text-xs text-muted-foreground">Product description kam se kam 10 characters honi chahiye.</p>
+        <p className="text-xs text-muted-foreground">Product description must be at least 10 characters.</p>
       )}
 
       {loading && (
         <div className="flex items-center gap-2 text-sm text-muted-foreground py-1">
           <Loader />
-          AI HS code dhoond raha hai...
+          AI is classifying HS code...
         </div>
       )}
 
-      {error && <p className="text-xs text-destructive">HS code fetch nahi ho paaya, dobara try karo.</p>}
+      {error && (
+        <div className="p-2.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-xs text-amber-800 dark:text-amber-300">
+          {error}
+        </div>
+      )}
 
       {result && (
         <div className="border border-border rounded-md p-3 bg-muted/40 space-y-2">
@@ -116,6 +124,8 @@ export function HSCodeFinder({
               {result.updatedAt && ` · Updated ${new Date(result.updatedAt).toLocaleDateString()}`}
             </p>
           )}
+
+          <StatutoryDisclaimer />
         </div>
       )}
     </div>

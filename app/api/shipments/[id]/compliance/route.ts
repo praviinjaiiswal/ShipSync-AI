@@ -32,19 +32,16 @@ export const POST = withErrorHandler(async (req: NextRequest, { params }: { para
   const ruleEngineResult = await runComplianceRules(shipment, company);
 
   // 2. Run Advisory AI Analysis
-  let aiResult: any;
-  try {
-    aiResult = await checkCompliance(shipment);
-  } catch (err) {
-    console.warn('Advisory AI compliance analysis warning:', err);
-    aiResult = {
-      complianceScore: ruleEngineResult.passed ? 85 : 40,
-      issues: ruleEngineResult.failedRules.map((r) => r.message),
-      recommendations: ['Ensure all statutory documents and tariff schedules are verified.'],
-    };
-  }
-
-  const { complianceScore = 0, issues = [], recommendations = [] } = aiResult;
+  const aiResult = await checkCompliance(shipment);
+  const complianceScore = aiResult.success
+    ? aiResult.complianceScore
+    : (ruleEngineResult.passed ? 85 : 40);
+  const issues = aiResult.success && aiResult.issues?.length
+    ? aiResult.issues
+    : (ruleEngineResult.failedRules.length ? ruleEngineResult.failedRules.map((r) => r.message) : ['Advisory AI evaluation temporarily unavailable; relying on deterministic statutory rules.']);
+  const recommendations = aiResult.success && aiResult.recommendations?.length
+    ? aiResult.recommendations
+    : ['Ensure all statutory documents and tariff schedules are verified.'];
 
   // Status derives strictly from the rule engine: if ANY hard rule fails, status is NEEDS_ATTENTION
   const overallStatus = ruleEngineResult.passed && complianceScore >= 70 ? 'PASSED' : 'NEEDS_ATTENTION';

@@ -66,7 +66,7 @@ export default function ImportsPage() {
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-1">
-            Manage Bill of Entry filings, CBIC statutory duty assessments, and port customs clearance.
+            Manage Bill of Entry filings, statutory duty calculations, and customs compliance readiness.
           </p>
         </div>
 

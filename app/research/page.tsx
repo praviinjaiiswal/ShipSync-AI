@@ -194,7 +194,7 @@ export default function ResearchPage() {
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {[
-                  ["AI Capability", "Basic NLP, 60% accuracy", "Fine-tuned LLMs, 94%+ accuracy"],
+                  ["AI Capability", "Basic NLP keyword match", "Domain-grounded AI suggestions"],
                   ["ICEGATE", "Legacy portal, manual upload", "ICEGATE 2.0, API-ready"],
                   ["DGFT Data", "PDF notifications, scattered", "Structured data, parseable"],
                   ["Exporter Mindset", "Paper-based, CHA-dependent", "Digital-first, SaaS-willing"],
@@ -399,9 +399,9 @@ export default function ResearchPage() {
                     <div className="text-xs text-emerald-600 mt-1">AC motors, output &gt; 750W but ≤ 75kW</div>
                   </div>
                   <div className="rounded-xl bg-blue-50 border border-blue-200 p-4">
-                    <div className="text-xs text-blue-600 mb-1">Confidence</div>
-                    <div className="text-2xl font-bold text-blue-700">94%</div>
-                    <div className="w-full bg-blue-200 rounded-full h-2 mt-2"><div className="bg-blue-600 h-2 rounded-full" style={{ width: "94%" }} /></div>
+                    <div className="text-xs text-blue-600 mb-1">Confidence (Model Estimate)</div>
+                    <div className="text-2xl font-bold text-blue-700">88%</div>
+                    <div className="w-full bg-blue-200 rounded-full h-2 mt-2"><div className="bg-blue-600 h-2 rounded-full" style={{ width: "88%" }} /></div>
                   </div>
                 </div>
                 <div className="rounded-xl bg-amber-50 border border-amber-200 p-4">
@@ -410,7 +410,7 @@ export default function ResearchPage() {
                 </div>
                 <div className="rounded-xl bg-slate-100 p-4 flex items-center gap-3">
                   <span className="text-emerald-500 text-lg">✓</span>
-                  <span className="text-sm font-medium text-slate-700">Compliance Check: Ready for ICEGATE submission</span>
+                  <span className="text-sm font-medium text-slate-700">Compliance Check: Verified against ICEGATE schemas</span>
                 </div>
               </div>
             </div>
@@ -474,8 +474,8 @@ export default function ResearchPage() {
 WHY THIS STACK?
 • Next.js (App Router): SSR for SEO + API routes + Edge functions
   Alternative: React SPA — rejected because SEO matters for content marketing
-• Fine-tuned LLM: 94% accuracy vs 60% for generic GPT-4 on Indian tariff
-  Alternative: GPT-4 API — rejected because data leaves India + lower accuracy
+• Domain AI: Tariff-grounded suggestions with mandatory human verification before filing
+  Alternative: Generic LLM API — lacks 8-digit Indian tariff context and policy schedules
 • PostgreSQL + MongoDB: Relational for transactions, document for flexibility
   Alternative: Only MongoDB — rejected because ACID compliance needed for billing
 • Redis: Sub-10ms caching for repeated HS code lookups
@@ -511,7 +511,7 @@ WHY THIS STACK?
           <div className="rounded-2xl bg-slate-900 p-8">
             <h3 className="text-white font-semibold mb-3">✅ Final Recommendation for ShipSync AI</h3>
             <p className="text-slate-300 text-sm leading-relaxed">
-              Build the HS Code Classifier first as your "wedge" — it is the highest-frequency, highest-pain problem. Validate 90%+ accuracy on 100 real products before adding document generation. The classifier alone can justify a ₹3,999/month price point if it replaces CHA queries.
+              Build the HS Code Classifier first as your "wedge" — it is the highest-frequency, highest-pain problem. Validate classification relevance and user workflows on 100 real products before adding document generation. The classifier alone can justify a ₹3,999/month price point if it replaces CHA queries.
             </p>
           </div>
         </div>

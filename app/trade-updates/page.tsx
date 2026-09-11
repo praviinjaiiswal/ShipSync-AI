@@ -7,14 +7,13 @@ import { prisma } from "@/app/lib/prisma";
 import { TradeUpdateCategory } from "@prisma/client";
 import { getCached, setCached, globalCacheKey, CACHE_TTL } from "@/lib/cache";
 import { TradeBriefingItem } from "@/app/components/TradeBriefingItem";
+import { AskSyncAIChat } from "./AskSyncAIChat";
 import {
   ExternalLink,
   ShieldCheck,
   ChevronLeft,
   ChevronRight,
   Bot,
-  Sparkles,
-  Send,
   MessageSquareQuote,
 } from "lucide-react";
 
@@ -161,35 +160,12 @@ export default async function TradeUpdatesPage({ searchParams }: PageProps) {
               Regulatory Briefings & Trade Policy
             </h1>
             <p className="text-base sm:text-lg text-ocean-muted leading-relaxed">
-              Real-time intelligence from DGFT, CBIC customs circulars, and bilateral trade desks. Summarized by Sync AI with direct attribution to the official government gazette.
+              Real-time intelligence from official DGFT notifications and trade policy updates (currently sourcing from DGFT only). Summarized by Sync AI with direct attribution to the official government gazette.
             </p>
           </div>
 
-          {/* Conversational Static Ask Bar */}
-          <div className="relative p-2.5 rounded-2xl bg-white dark:bg-slate-900 border border-border shadow-2xs flex items-center gap-3">
-            <div className="pl-3 text-ocean-deep dark:text-ocean-light">
-              <Sparkles className="w-5 h-5 text-emerald-500 animate-pulse" />
-            </div>
-            <input
-              type="text"
-              readOnly
-              placeholder="Ask Sync AI: 'What is the latest RoDTEP rate for textiles?' or 'Any DGFT updates on Basmati rice?'"
-              className="flex-1 bg-transparent text-sm text-slate-700 dark:text-slate-200 placeholder-slate-400 outline-none cursor-default py-1.5"
-            />
-            <div className="flex items-center gap-2 pr-1">
-              <span className="hidden sm:inline-block text-[11px] font-medium text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-md">
-                Static Preview
-              </span>
-              <button
-                type="button"
-                disabled
-                className="p-2.5 rounded-xl bg-navy-deep text-white opacity-80 cursor-not-allowed transition-opacity"
-                title="Conversational search is in preview"
-              >
-                <Send className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
+          {/* Conversational Ask Sync AI Chatbot */}
+          <AskSyncAIChat />
 
           {/* Quick-reply Suggestion Chips */}
           <div className="space-y-2.5 pt-1">
@@ -331,7 +307,7 @@ export default async function TradeUpdatesPage({ searchParams }: PageProps) {
               Disclaimer & Source Attribution
             </h4>
             <p className="leading-relaxed">
-              ShipSync AI provides curated, plain-language summaries of public trade notices issued by the Directorate General of Foreign Trade (DGFT), Central Board of Indirect Taxes and Customs (CBIC), and partner ministries. Summaries do not constitute legal advice or official customs interpretations. Traders and customs brokers should always verify exact notification numbers, effective dates, and policy schedules directly at the official government gazette before filing declarations.
+              ShipSync AI provides advisory assistance, not statutory or legal advice. Always verify HS codes, duty calculations, and compliance requirements with a licensed Customs House Agent (CHA) or relevant authority before filing. Trade intelligence currently sources from DGFT only; CBIC data integration is planned for a future phase. Traders and customs brokers should always verify exact notification numbers, effective dates, and policy schedules directly at the official government gazette before filing declarations.
             </p>
           </div>
         </div>

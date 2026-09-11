@@ -29,15 +29,21 @@ export const POST = withErrorHandler(async (req: NextRequest) => {
     return NextResponse.json(cached);
   }
 
-  let aiResult: any;
-  try {
-    aiResult = await findHSCode(productDescription);
-  } catch (err) {
-    console.error('AI HS code lookup failed:', err);
-    throw new ExternalServiceError('AI HS code identification service is unavailable. Please retry.');
+  const aiResult = await findHSCode(productDescription);
+
+  if (!aiResult.success) {
+    return NextResponse.json({
+      success: false,
+      reason: aiResult.reason,
+      message: aiResult.error || 'AI suggestion temporarily unavailable, please try manual entry.',
+      verified: false,
+      hsCode: null,
+      description: null,
+      warning: 'AI suggestion temporarily unavailable, please try manual entry.',
+    });
   }
 
-  const suggestedCode = (aiResult?.hsCode || '').trim().replace(/\./g, '');
+  const suggestedCode = aiResult.hsCode.trim().replace(/\./g, '');
 
   // Cross-reference against official TariffSchedule ground-truth table with cache
   const tariffCacheKey = globalCacheKey('tariff-entry', suggestedCode);

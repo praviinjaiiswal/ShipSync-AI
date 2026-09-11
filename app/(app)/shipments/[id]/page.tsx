@@ -16,6 +16,7 @@ import { DocumentGenerator } from "@/components/shipments/document-generator";
 import { LogisticsPanel } from "@/components/logistics/LogisticsPanel";
 import { ExportRealisationCard } from "@/components/financial/ExportRealisationCard";
 import { IncentiveClaimCard } from "@/components/financial/IncentiveClaimCard";
+import { StatutoryDisclaimer } from "@/components/ui/statutory-disclaimer";
 
 export default async function ShipmentDetailPage({ params }: { params: { id: string } }) {
   const user = await getCurrentUser();
@@ -167,6 +168,8 @@ export default async function ShipmentDetailPage({ params }: { params: { id: str
           </div>
         </div>
       </div>
+
+      <StatutoryDisclaimer className="mt-6" />
     </div>
   );
 }

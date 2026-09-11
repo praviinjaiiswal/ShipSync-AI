@@ -22,7 +22,7 @@ const faqs = [
   {
     question: "Will ShipSync AI work with ICEGATE?",
     answer:
-      "Yes. Our documents are generated in ICEGATE-compatible formats. We are building direct API integration with ICEGATE 2.0 so you can auto-file shipping bills without manual data entry.",
+      "Our documents are generated using ICEGATE-compatible schemas. ICEGATE integration is currently adapter-based (mock/testing stage for direct gateway connectivity), producing pre-validated documents for verification prior to filing.",
   },
   {
     question: "How much can I save with the DGFT Benefit Finder?",

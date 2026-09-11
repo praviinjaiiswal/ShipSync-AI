@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { StatutoryDisclaimer } from "@/components/ui/statutory-disclaimer";
 
 export default function FeaturesPage() {
   const [activeTab, setActiveTab] = useState("classifier");
@@ -10,9 +11,9 @@ export default function FeaturesPage() {
     classifier: {
       title: "AI HS Code Classifier",
       icon: "🧠",
-      accuracy: "94%+",
+      accuracy: "AI-Assisted",
       description:
-        "Automatically suggests the exact 8-digit Harmonized System code for any product description using fine-tuned LLMs trained on 50,000+ validated Indian export records.",
+        "Provides AI-assisted suggestions for 8-digit Harmonized System codes based on official Indian tariff schedules. Always verify classifications before filing.",
       what:
         "Every product exported from India needs an 8-digit HS code. Wrong code = wrong duty + customs penalty + shipment delay. Our AI reads your product description and maps it to the correct code in under 2 seconds.",
       why: "Manual HS code lookup takes 15-45 minutes per product and requires expert knowledge. CHAs charge ₹2,000+ per query. One wrong code can cost ₹50,000+ in penalties.",
@@ -44,9 +45,9 @@ export default function FeaturesPage() {
     documents: {
       title: "Auto Document Generator",
       icon: "📄",
-      accuracy: "ICEGATE Ready",
+      accuracy: "Adapter-Based",
       description:
-        "Generates commercial invoices, packing lists, shipping bills, and GR forms — all formatted for ICEGATE 2.0 submission with built-in validation.",
+        "Generates commercial invoices, packing lists, shipping bills, and GR forms — formatted to ICEGATE schemas with adapter verification in testing stage.",
       what:
         "Export documentation is repetitive, error-prone, and format-sensitive. One mismatch between invoice and packing list = customs hold. This feature auto-generates all standard export documents from your product and buyer data.",
       why: "Average exporter spends 4+ hours per shipment on paperwork. 30% of shipping bills face queries due to document mismatches. Each query costs 2-3 days delay.",
@@ -192,9 +193,9 @@ export default function FeaturesPage() {
     dashboard: {
       title: "Compliance Dashboard",
       icon: "📊",
-      accuracy: "Live",
+      accuracy: "Unified View",
       description:
-        "Track shipments, benefits claimed, pending actions, and compliance health in one unified view. Integrates with ICEGATE for real-time status.",
+        "Track shipments, benefits claimed, pending actions, and compliance health in one unified view with adapter-based schema verification and DGFT regulatory tracking.",
       what:
         "Export compliance is scattered across ICEGATE, DGFT, bank portals, and Excel sheets. This dashboard pulls everything into one place: shipment status, duty drawback status, FTA utilization, pending documents, and compliance score.",
       why: "Most exporters use 5+ different portals and Excel trackers. Information is always outdated. A unified dashboard saves 5+ hours/week of status-checking and prevents missed deadlines.",
@@ -390,6 +391,8 @@ export default function FeaturesPage() {
                 Start with the <strong className="text-white">{current.title}</strong> as your pilot feature. Run it parallel to your existing process for 10 shipments. Measure: (1) Time saved per shipment, (2) Error reduction, (3) Cost avoided. Only after validation, expand to the next module. This phased approach minimizes risk while proving ROI to stakeholders.
               </p>
             </div>
+
+            <StatutoryDisclaimer className="mt-6" />
           </div>
         </div>
       </section>
