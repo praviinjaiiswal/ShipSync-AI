@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { Ship, Radio, Sparkles, Menu, X, ArrowUpRight } from "lucide-react";
+import { Ship, Radio, Menu, X } from "lucide-react";
 import { SignedIn, SignedOut } from "@clerk/nextjs";
 
 interface SlimNavProps {
@@ -93,9 +93,8 @@ export function SlimNav({ onOpenWaitlist }: SlimNavProps) {
             <button
               type="button"
               onClick={onOpenWaitlist}
-              className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-navy-deep hover:bg-ocean-deep text-white text-xs font-bold tracking-wide transition-all duration-200 shadow-sm cursor-pointer"
+              className="inline-flex items-center px-4 py-1.5 rounded-full bg-navy-deep hover:bg-ocean-deep text-white text-xs font-bold tracking-wide transition-all duration-200 shadow-sm cursor-pointer"
             >
-              <Sparkles className="w-3.5 h-3.5 text-amber-300" />
               <span>Join Waitlist</span>
             </button>
           </div>

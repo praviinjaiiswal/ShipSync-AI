@@ -48,6 +48,12 @@ const config: Config = {
           DEFAULT: "hsl(var(--brand-orange))",
           foreground: "hsl(var(--brand-orange-foreground))",
         },
+        "navy-deep": "#0E151B",
+        "ocean-deep": "#2A495B",
+        "ocean-muted": "#6D8EA4",
+        "ocean-light": "#A5BCCC",
+        "editorial-light": "#EEF2FB",
+        sea: "#EEF2FB",
       },
       borderRadius: {
         lg: "var(--radius)",

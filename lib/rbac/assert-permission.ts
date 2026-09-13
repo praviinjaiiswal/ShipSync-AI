@@ -7,6 +7,9 @@ import type { UserRole } from '@prisma/client';
 import { ForbiddenError } from '@/lib/errors';
 import { hasPermission, type Permission } from './permissions';
 
+export { hasPermission };
+export type { Permission };
+
 /**
  * Assert that a user with the given role has permission to perform the specified action.
  * Throws ForbiddenError if not permitted — never returns false, always throws.

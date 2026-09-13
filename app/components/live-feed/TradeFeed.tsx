@@ -44,6 +44,7 @@ interface FeedApiResponse {
   meta: {
     total: number;
     unfilteredTotal: number;
+    isEmpty?: boolean;
     timestamp: string;
     activeFilter: string;
   };
@@ -209,32 +210,34 @@ export function TradeFeed() {
             </div>
 
             {/* View Mode Toggle: Grid vs List */}
-            <div className="flex items-center gap-1 bg-white dark:bg-slate-900 border border-border p-1 rounded-xl shadow-2xs self-end sm:self-auto shrink-0">
+            <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-900 border border-border p-1 rounded-xl shadow-2xs self-end sm:self-auto shrink-0">
               <button
                 type="button"
                 onClick={() => setViewMode("grid")}
-                className={`p-1.5 rounded-lg text-xs flex items-center gap-1 font-medium transition-colors ${
+                aria-label="Grid view"
+                className={`p-1.5 px-2.5 rounded-lg text-xs flex items-center gap-1.5 font-semibold transition-all cursor-pointer ${
                   viewMode === "grid"
-                    ? "bg-navy-deep text-white"
-                    : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                    ? "bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 shadow-sm"
+                    : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-white/60 dark:hover:bg-slate-800"
                 }`}
                 title="Grid view"
               >
-                <LayoutGrid className="w-3.5 h-3.5" />
-                <span className="hidden md:inline">Grid</span>
+                <LayoutGrid className="w-3.5 h-3.5 shrink-0" />
+                <span className="inline">Grid</span>
               </button>
               <button
                 type="button"
                 onClick={() => setViewMode("list")}
-                className={`p-1.5 rounded-lg text-xs flex items-center gap-1 font-medium transition-colors ${
+                aria-label="List view"
+                className={`p-1.5 px-2.5 rounded-lg text-xs flex items-center gap-1.5 font-semibold transition-all cursor-pointer ${
                   viewMode === "list"
-                    ? "bg-navy-deep text-white"
-                    : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                    ? "bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 shadow-sm"
+                    : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-white/60 dark:hover:bg-slate-800"
                 }`}
                 title="Compact list view"
               >
-                <List className="w-3.5 h-3.5" />
-                <span className="hidden md:inline">List</span>
+                <List className="w-3.5 h-3.5 shrink-0" />
+                <span className="inline">List</span>
               </button>
             </div>
           </div>
@@ -253,12 +256,15 @@ export function TradeFeed() {
                   onClick={() => setSelectedTopic(tab.id)}
                   className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${
                     isActive
-                      ? "bg-navy-deep text-white shadow-xs scale-100"
-                      : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-border hover:border-ocean-deep/50 hover:bg-slate-50 dark:hover:bg-slate-800"
+                      ? "bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 border border-slate-900 dark:border-slate-100 shadow-sm ring-2 ring-slate-900/10 dark:ring-white/20 scale-[1.02]"
+                      : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800"
                   }`}
                 >
                   <span>{tab.icon}</span>
                   <span>{tab.label}</span>
+                  {isActive && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 ml-0.5" />
+                  )}
                 </button>
               );
             })}
@@ -291,6 +297,29 @@ export function TradeFeed() {
                 </div>
               </div>
             ))}
+          </div>
+        ) : data?.meta?.isEmpty || (data?.meta?.unfilteredTotal === 0 && !searchQuery) ? (
+          /* Live Sync In Progress / No Live Data Yet */
+          <div className="py-16 px-6 text-center max-w-lg mx-auto bg-white dark:bg-slate-900 rounded-3xl border border-border/80 p-8 shadow-xs space-y-4">
+            <div className="w-14 h-14 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800/60 mx-auto flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+              <Radio className="w-7 h-7 animate-pulse" />
+            </div>
+            <div className="space-y-2">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 text-xs font-semibold">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                <span>Automated Gazette Scraper Active</span>
+              </div>
+              <h3 className="font-heading text-xl font-bold text-navy-deep dark:text-white">
+                Live sync in progress — first regulatory updates will appear here shortly
+              </h3>
+              <p className="text-xs sm:text-sm text-ocean-muted leading-relaxed max-w-md mx-auto">
+                ShipSync AI connects directly to official DGFT gazette feeds. Newly indexed trade circulars, RoDTEP revisions, and customs notifications will populate automatically once published.
+              </p>
+            </div>
+            <div className="pt-2 flex items-center justify-center gap-2 text-xs text-slate-400">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span>Scraper scheduled daily at 04:00 UTC</span>
+            </div>
           </div>
         ) : filteredUpdates.length === 0 ? (
           /* Empty Search State */
@@ -444,13 +473,13 @@ export function TradeFeed() {
         )}
 
         {/* Bottom Banner: Ask Sync AI Assistant Integration */}
-        <div className="mt-12 p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-navy-deep via-ocean-deep to-navy-deep text-white shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="mt-12 p-6 sm:p-8 rounded-3xl bg-slate-900 border border-slate-800 text-white shadow-xl flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden">
           <div className="space-y-2 text-center md:text-left max-w-xl">
-            <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-white/10 text-emerald-300 text-xs font-semibold uppercase tracking-wider">
-              <Sparkles className="w-3 h-3" />
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold uppercase tracking-wider">
+              <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
               <span>Interactive Regulatory Query</span>
             </div>
-            <h3 className="font-heading text-xl sm:text-2xl font-bold tracking-tight">
+            <h3 className="font-heading text-xl sm:text-2xl font-bold tracking-tight text-white">
               Need clarification on a specific circular or RoDTEP tariff?
             </h3>
             <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
@@ -460,10 +489,10 @@ export function TradeFeed() {
 
           <Link
             href="/trade-updates"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white text-navy-deep font-bold text-xs hover:bg-slate-100 transition-all shadow-md group shrink-0"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white hover:bg-slate-100 text-slate-900 font-bold text-xs transition-all shadow-md group shrink-0 border border-slate-200"
           >
-            <span>Open Conversational Assistant</span>
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            <span className="text-slate-900">Open Conversational Assistant</span>
+            <ArrowRight className="w-4 h-4 text-slate-900 group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
 
