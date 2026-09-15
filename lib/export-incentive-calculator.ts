@@ -38,7 +38,7 @@ export async function calculateExportIncentives(
     `${normalizedHs}:${fobValue}:${quantity || 0}`
   );
 
-  const cached = getCached<ExportIncentiveBreakdown>(cacheKey);
+  const cached = await getCached<ExportIncentiveBreakdown>(cacheKey);
   if (cached) {
     return cached;
   }
@@ -110,7 +110,7 @@ export async function calculateExportIncentives(
   };
 
   // Cache for 5 minutes
-  setCached(cacheKey, breakdown, CACHE_TTL.DUTY_RATE);
+  await setCached(cacheKey, breakdown, CACHE_TTL.DUTY_RATE);
 
   return breakdown;
 }

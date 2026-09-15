@@ -9,7 +9,7 @@ export const GET = withErrorHandler(async (req: NextRequest) => {
   const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") || "40", 10)));
 
   const cacheKey = globalCacheKey(`trade-feed:live:${categoryParam}:${limit}`);
-  const cached = getCached<any>(cacheKey);
+  const cached = await getCached<any>(cacheKey);
   if (cached) {
     return NextResponse.json(cached);
   }
@@ -46,7 +46,7 @@ export const GET = withErrorHandler(async (req: NextRequest) => {
     };
 
     // Cache briefly (15 seconds) so that freshly published records appear promptly
-    setCached(cacheKey, emptyResult, 15 * 1000);
+    await setCached(cacheKey, emptyResult, 15 * 1000);
     return NextResponse.json(emptyResult);
   }
 
@@ -129,7 +129,7 @@ export const GET = withErrorHandler(async (req: NextRequest) => {
   };
 
   // Cache for 60 seconds
-  setCached(cacheKey, result, 60 * 1000);
+  await setCached(cacheKey, result, 60 * 1000);
 
   return NextResponse.json(result);
 });

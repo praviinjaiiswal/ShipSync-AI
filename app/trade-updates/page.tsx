@@ -107,7 +107,7 @@ export default async function TradeUpdatesPage({ searchParams }: PageProps) {
   }
 
   const cacheKey = globalCacheKey(`trade:feed:${currentCategory}:${currentPage}`);
-  let cachedData = getCached<{ totalCount: number; updates: any[] }>(cacheKey);
+  let cachedData = await getCached<{ totalCount: number; updates: any[] }>(cacheKey);
 
   let totalCount = 0;
   let updates: any[] = [];
@@ -127,7 +127,7 @@ export default async function TradeUpdatesPage({ searchParams }: PageProps) {
     ]);
     totalCount = countResult;
     updates = updatesResult;
-    setCached(cacheKey, { totalCount, updates }, CACHE_TTL.DUTY_CALC);
+    await setCached(cacheKey, { totalCount, updates }, CACHE_TTL.DUTY_CALC);
   }
 
   const totalPages = Math.ceil(totalCount / pageSize);

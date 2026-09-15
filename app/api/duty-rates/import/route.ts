@@ -66,7 +66,7 @@ export const POST = withErrorHandler(async (req: NextRequest) => {
   }
 
   // Bust reference duty rates cache
-  invalidateByPrefix('global:duty-rate');
+  await invalidateByPrefix('global:duty-rate');
 
   await prisma.activity.create({
     data: {

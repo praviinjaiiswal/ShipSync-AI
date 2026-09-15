@@ -24,7 +24,7 @@ export const POST = withErrorHandler(async (req: NextRequest) => {
 
   // Tenant-namespaced caching with SHA-256 hash
   const cacheKey = createTenantKey(ctx.companyId, 'hs-code', hashKey(productDescription.toLowerCase()));
-  const cached = getCached(cacheKey);
+  const cached = await getCached(cacheKey);
   if (cached) {
     return NextResponse.json(cached);
   }
@@ -47,13 +47,13 @@ export const POST = withErrorHandler(async (req: NextRequest) => {
 
   // Cross-reference against official TariffSchedule ground-truth table with cache
   const tariffCacheKey = globalCacheKey('tariff-entry', suggestedCode);
-  let tariffMatch = getCached<any>(tariffCacheKey);
+  let tariffMatch = await getCached<any>(tariffCacheKey);
   if (!tariffMatch) {
     tariffMatch = await prisma.tariffSchedule.findUnique({
       where: { hsCode: suggestedCode },
     });
     if (tariffMatch) {
-      setCached(tariffCacheKey, tariffMatch, 4 * 60 * 60 * 1000); // 4-hour reasonable TTL
+      await setCached(tariffCacheKey, tariffMatch, 4 * 60 * 60 * 1000); // 4-hour reasonable TTL
     }
   }
 
@@ -99,6 +99,6 @@ export const POST = withErrorHandler(async (req: NextRequest) => {
     }
   }
 
-  setCached(cacheKey, responsePayload, CACHE_TTL.HS_CODE);
+  await setCached(cacheKey, responsePayload, CACHE_TTL.HS_CODE);
   return NextResponse.json(responsePayload);
 });

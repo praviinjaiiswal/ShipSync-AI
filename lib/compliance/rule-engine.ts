@@ -69,7 +69,7 @@ export async function runComplianceRules(
   let tariffEntry: any = null;
   if (cleanHs.length >= 6) {
     const tariffCacheKey = globalCacheKey('tariff-grounding', cleanHs);
-    tariffEntry = getCached(tariffCacheKey);
+    tariffEntry = await getCached(tariffCacheKey);
     if (!tariffEntry) {
       tariffEntry = await prisma.tariffSchedule.findFirst({
         where: {
@@ -80,7 +80,7 @@ export async function runComplianceRules(
         },
       });
       if (tariffEntry) {
-        setCached(tariffCacheKey, tariffEntry, 4 * 60 * 60 * 1000); // 4-hour reasonable TTL
+        await setCached(tariffCacheKey, tariffEntry, 4 * 60 * 60 * 1000); // 4-hour reasonable TTL
       }
     }
   }

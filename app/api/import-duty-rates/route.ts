@@ -84,7 +84,7 @@ export const POST = withErrorHandler(async (req: NextRequest) => {
   });
 
   // Bust calculation cache
-  invalidateByPrefix('company:');
+  await invalidateByPrefix('company:');
 
   return NextResponse.json({
     success: true,

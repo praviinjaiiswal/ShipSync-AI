@@ -50,7 +50,7 @@ export async function calculateCustomsDuty(
 
   // Check 5-minute tenant-namespaced cache first
   const cacheKey = tenantCacheKey(companyId, 'duty_calc', hsCode, String(assessableValue));
-  const cached = getCached<DutyCalculationBreakdown>(cacheKey);
+  const cached = await getCached<DutyCalculationBreakdown>(cacheKey);
   if (cached) {
     return { ...cached, isCached: true };
   }
@@ -104,7 +104,7 @@ export async function calculateCustomsDuty(
   };
 
   // Cache for 5 minutes (form tweaking session)
-  setCached(cacheKey, result, CACHE_TTL.DUTY_CALC);
+  await setCached(cacheKey, result, CACHE_TTL.DUTY_CALC);
 
   return result;
 }

@@ -525,9 +525,9 @@ async function runTests() {
       'Tenant cache keys are uniquely namespaced by companyId'
     );
 
-    setCached(tenantKeyAlpha, { hsCode: '85071000', rate: 18.0 }, 10000);
-    const alphaCached = getCached(tenantKeyAlpha);
-    const betaCached = getCached(tenantKeyBeta);
+    await setCached(tenantKeyAlpha, { hsCode: '85071000', rate: 18.0 }, 10000);
+    const alphaCached = await getCached(tenantKeyAlpha);
+    const betaCached = await getCached(tenantKeyBeta);
 
     assert(
       alphaCached !== null && (alphaCached as any).hsCode === '85071000',

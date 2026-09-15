@@ -392,15 +392,15 @@ async function runFinalAudit() {
 
     // 5c. Tariff caching TTL
     const cacheTestKey = globalCacheKey('tariff-grounding', '84821011');
-    setCached(cacheTestKey, tariffRecord, 4 * 60 * 60 * 1000);
-    const cachedEntry = getCached<any>(cacheTestKey);
+    await setCached(cacheTestKey, tariffRecord, 4 * 60 * 60 * 1000);
+    const cachedEntry = await getCached<any>(cacheTestKey);
     assert(
       cachedEntry?.hsCode === '84821011',
-      'TariffSchedule cached lookup retrieves fast in-memory entry with 4-hour TTL'
+      'TariffSchedule cached lookup retrieves fast entry with 4-hour TTL'
     );
 
-    invalidateByPrefix('global:tariff');
-    const evictedEntry = getCached(cacheTestKey);
+    await invalidateByPrefix('global:tariff');
+    const evictedEntry = await getCached(cacheTestKey);
     assert(evictedEntry === null, 'Cache invalidation successfully purges stale tariff entries upon admin updates');
 
     // Clean up test data

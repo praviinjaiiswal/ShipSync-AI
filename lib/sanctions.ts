@@ -41,7 +41,7 @@ export async function checkSanctions(buyerName: string): Promise<SanctionsScreen
   // 1. India Statutory Screening (DGFT Denied Entities & SCOMET)
   // -------------------------------------------------------------
   const localCacheKey = globalCacheKey('sanctions', 'denied-entity', hashKey(normalizedQuery.toLowerCase()));
-  let localMatches = getCached<SanctionsMatch[]>(localCacheKey);
+  let localMatches = await getCached<SanctionsMatch[]>(localCacheKey);
 
   if (!localMatches) {
     localMatches = [];
@@ -66,7 +66,7 @@ export async function checkSanctions(buyerName: string): Promise<SanctionsScreen
       }
 
       // Cache reference data check for 24 hours
-      setCached(localCacheKey, localMatches, CACHE_TTL.STATIC_REF);
+      await setCached(localCacheKey, localMatches, CACHE_TTL.STATIC_REF);
     } catch (err) {
       console.error('Local DGFT/SCOMET sanctions lookup error:', err);
     }

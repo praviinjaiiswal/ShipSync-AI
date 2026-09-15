@@ -16,7 +16,7 @@ export const GET = withErrorHandler(async (req: NextRequest, { params }: { param
 
   const cleanHsCode = params.hsCode.trim();
   const cacheKey = `global:duty-rate:${cleanHsCode}`;
-  const cached = getCached(cacheKey);
+  const cached = await getCached(cacheKey);
   if (cached) {
     return NextResponse.json(cached);
   }
@@ -29,7 +29,7 @@ export const GET = withErrorHandler(async (req: NextRequest, { params }: { param
     throw new NotFoundError(`No duty rates found for HS code ${cleanHsCode}`);
   }
 
-  setCached(cacheKey, rate, CACHE_TTL.DUTY_RATE);
+  await setCached(cacheKey, rate, CACHE_TTL.DUTY_RATE);
 
   return NextResponse.json(rate);
 });

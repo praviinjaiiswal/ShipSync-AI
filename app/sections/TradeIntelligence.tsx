@@ -43,7 +43,7 @@ function getRecencyGroup(dateStr: string | Date | null | undefined): "Today" | "
 
 export async function TradeIntelligence() {
   const cacheKey = globalCacheKey("trade:homepage:latest");
-  let updates = getCached<any[]>(cacheKey);
+  let updates = await getCached<any[]>(cacheKey);
 
   if (!updates) {
     try {
@@ -52,7 +52,7 @@ export async function TradeIntelligence() {
         orderBy: { publishedAt: "desc" },
         take: 6,
       });
-      setCached(cacheKey, updates, CACHE_TTL.DUTY_CALC); // 5 min TTL
+      await setCached(cacheKey, updates, CACHE_TTL.DUTY_CALC); // 5 min TTL
     } catch (err) {
       console.error("Failed to load trade updates for homepage section:", err);
       updates = [];

@@ -288,17 +288,17 @@ async function runTests() {
   assert(keyA === `company:${companyAId}:hs_code:84821010`, 'Cache key formatted with company namespace');
   assert(keyA !== keyB, 'Same resource for different companies produces distinct cache keys');
 
-  setCached(keyA, { dutyRate: 7.5 });
-  setCached(keyB, { dutyRate: 10.0 });
+  await setCached(keyA, { dutyRate: 7.5 });
+  await setCached(keyB, { dutyRate: 10.0 });
 
-  assert(getCached<{ dutyRate: number }>(keyA)?.dutyRate === 7.5, 'Cached value retrieved for Company A');
-  assert(getCached<{ dutyRate: number }>(keyB)?.dutyRate === 10.0, 'Cached value retrieved for Company B without collision');
+  assert((await getCached<{ dutyRate: number }>(keyA))?.dutyRate === 7.5, 'Cached value retrieved for Company A');
+  assert((await getCached<{ dutyRate: number }>(keyB))?.dutyRate === 10.0, 'Cached value retrieved for Company B without collision');
 
   // Invalidate Company A's cache only
-  const invalidatedCount = invalidateByPrefix(`company:${companyAId}:`);
+  const invalidatedCount = await invalidateByPrefix(`company:${companyAId}:`);
   assert(invalidatedCount >= 1, 'Invalidate by prefix removes tenant keys');
-  assert(getCached(keyA) === null, 'Company A cache cleared after invalidation');
-  assert(getCached(keyB) !== null, 'Company B cache preserved untouched after Company A invalidation');
+  assert((await getCached(keyA)) === null, 'Company A cache cleared after invalidation');
+  assert((await getCached(keyB)) !== null, 'Company B cache preserved untouched after Company A invalidation');
 
   // ----------------------------------------------------
   // SUMMARY

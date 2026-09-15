@@ -160,8 +160,8 @@ export const POST = withErrorHandler(async (req: NextRequest) => {
   });
 
   // Invalidate any cached tariff schedule lookups
-  invalidateByPrefix('global:tariff');
-  invalidateByPrefix('company:');
+  await invalidateByPrefix('global:tariff');
+  await invalidateByPrefix('company:');
 
   return NextResponse.json({
     success: true,
